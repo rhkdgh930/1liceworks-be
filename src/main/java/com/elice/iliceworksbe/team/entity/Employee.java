@@ -1,7 +1,5 @@
 package com.elice.iliceworksbe.team.entity;
 
-import com.elice.iliceworksbe.common.constant.Position;
-import com.elice.iliceworksbe.common.constant.UserType;
 import com.elice.iliceworksbe.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,16 +25,17 @@ public class Employee extends BaseEntity{
     @Column(name = "employee_id", nullable = false)
     private Long id;
 
-    @Column(name = "user_type", nullable = false)
-    @Enumerated(EnumType.STRING)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_type_id")
     private UserType userType;
 
-    @Column(name = "job_title")
-    private String jobTitle;
-
-    @Column(name = "position", nullable = false)
-    @Enumerated(EnumType.STRING)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "position_id")
     private Position position;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job_title_id")
+    private JobTitle jobTitle;
 
     @Column(name = "responsibility")
     private String responsibility;
