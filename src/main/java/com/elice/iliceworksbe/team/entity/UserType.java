@@ -1,7 +1,7 @@
 package com.elice.iliceworksbe.team.entity;
 
 import com.elice.iliceworksbe.common.entity.BaseEntity;
-import com.elice.iliceworksbe.team.dto.userType.UserTypeResponseDto;
+import com.elice.iliceworksbe.team.dto.userType.UserTypeRequestDto;
 import com.elice.iliceworksbe.team.dto.userType.UserTypeUpdateDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,14 +28,12 @@ public class UserType extends BaseEntity{
     private String name;
 
     public void update(UserTypeUpdateDto userTypeUpdateDto) {
-        this.name = userTypeUpdateDto.getName();
+        this.name = userTypeUpdateDto.name();
     }
 
-    public UserTypeResponseDto from() {
-        return UserTypeResponseDto
-                .builder()
-                .id(this.getId())
-                .name(this.getName())
+    public static UserType from(UserTypeRequestDto requestDto) {
+        return UserType.builder()
+                .name(requestDto.name())
                 .build();
     }
 }

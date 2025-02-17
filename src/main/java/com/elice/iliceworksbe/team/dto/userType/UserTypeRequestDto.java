@@ -1,19 +1,9 @@
 package com.elice.iliceworksbe.team.dto.userType;
 
 import com.elice.iliceworksbe.team.entity.UserType;
-import lombok.*;
 
-@Getter
-@Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class UserTypeRequestDto {
-    private String name;
-
+public record UserTypeRequestDto(String name) {
     public UserType from() {
-        return UserType.builder()
-                .name(this.getName())
-                .build();
+        return UserType.from(this);
     }
 }

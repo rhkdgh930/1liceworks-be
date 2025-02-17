@@ -1,14 +1,10 @@
 package com.elice.iliceworksbe.team.dto.userType;
 
 
-import lombok.*;
+import com.elice.iliceworksbe.team.entity.UserType;
 
-@Getter
-@Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class UserTypeResponseDto {
-    private Long id;
-    private String name;
+public record UserTypeResponseDto(Long id, String name) {
+    public static UserTypeResponseDto from(UserType userType) {
+        return new UserTypeResponseDto(userType.getId(), userType.getName());
+    }
 }

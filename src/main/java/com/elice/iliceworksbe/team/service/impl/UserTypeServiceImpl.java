@@ -22,21 +22,21 @@ public class UserTypeServiceImpl implements UserTypeService{
     @Override
     public UserTypeResponseDto postUserType(UserTypeRequestDto userTypeRequestDto) {
         UserType savedUserType = userTypeRepository.save(userTypeRequestDto.from());
-        return savedUserType.from();
+        return UserTypeResponseDto.from(savedUserType);
     }
 
     @Override
     public UserTypeResponseDto getUserType(Long userTypeId) {
         UserType findedUserType = userTypeRepository.findById(userTypeId)
                 .orElseThrow(() -> new BaseException(ErrorCode.USER_TYPE_NOT_FOUND));
-        return findedUserType.from();
+        return UserTypeResponseDto.from(findedUserType);
     }
 
     @Override
     public List<UserTypeResponseDto> getAllUserTypes() {
         return userTypeRepository.findAll()
                 .stream()
-                .map(UserType::from)
+                .map(UserTypeResponseDto::from)
                 .collect(Collectors.toList());
     }
 
@@ -48,7 +48,7 @@ public class UserTypeServiceImpl implements UserTypeService{
         findedUserType.update(userTypeUpdateDto);
 
         UserType updatedUserType = userTypeRepository.save(findedUserType);
-        return updatedUserType.from();
+        return UserTypeResponseDto.from(updatedUserType);
     }
 
     @Override
