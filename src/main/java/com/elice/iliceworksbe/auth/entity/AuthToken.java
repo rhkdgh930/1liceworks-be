@@ -33,4 +33,9 @@ public class AuthToken extends BaseEntity{
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    public void updateAuthToken(String refreshToken, LocalDateTime expiresAt){
+        this.refreshToken = refreshToken;
+        this.expiresAt = expiresAt;
+    }
 }
