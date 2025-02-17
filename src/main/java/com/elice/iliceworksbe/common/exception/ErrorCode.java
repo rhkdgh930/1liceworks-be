@@ -39,6 +39,7 @@ public enum ErrorCode {
     NOT_FIND_USER(false,HttpStatus.NOT_FOUND.value(),"일치하는 유저가 없습니다."),
 
     USER_TYPE_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "일치하는 유저 타입이 없습니다."),
+    POSITION_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "일치하는 직급이 없습니다."),
     /**
      * 500 :  Database, Server 오류
      */
