@@ -75,6 +75,25 @@ public class NotificationServiceImpl implements NotificationService {
         });
     }
 
+    /**
+     * 특정 사용자에게 실시간 알림 전송
+     * @param username
+     * @param message
+     */
+
+    @Override
+    public void sendNotification(String username, String message) {
+        SseEmitter emitter = emitters.get(username);
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event().name("notification").data(message));
+            } catch (IOException e) {
+                emitters.remove(username);
+            }
+        }
+    }
+
+
     @Override
     public EventNotificationResponseDto createEventNotification(EventNotificationRequestDto requestDto) {
         User user = userRepository.findByAccountId(requestDto.username())
@@ -86,5 +105,7 @@ public class NotificationServiceImpl implements NotificationService {
         EventNotification savedNotification = notificationRepository.save(EventNotification.from(requestDto, user, event));
         return EventNotificationResponseDto.from(savedNotification);
     }
+
+
     
 }
