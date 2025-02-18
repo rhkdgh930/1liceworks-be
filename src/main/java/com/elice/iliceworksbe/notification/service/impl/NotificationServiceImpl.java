@@ -11,9 +11,9 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class NotificationServiceImpl implements NotificationService {
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
