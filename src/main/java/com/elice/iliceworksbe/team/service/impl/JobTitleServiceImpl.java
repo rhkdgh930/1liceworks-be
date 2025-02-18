@@ -10,12 +10,14 @@ import com.elice.iliceworksbe.team.repository.JobTitleRepository;
 import com.elice.iliceworksbe.team.service.JobTitleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class JobTitleServiceImpl implements JobTitleService {
 
     private final JobTitleRepository jobTitleRepository;
@@ -26,6 +28,7 @@ public class JobTitleServiceImpl implements JobTitleService {
         return JobTitleResponseDto.from(savedJobTitle);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public JobTitleResponseDto getJobTitle(Long jobTitleId) {
         JobTitle findedJobTitle = jobTitleRepository.findById(jobTitleId)
@@ -33,6 +36,7 @@ public class JobTitleServiceImpl implements JobTitleService {
         return JobTitleResponseDto.from(findedJobTitle);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<JobTitleResponseDto> getAllJobTitles() {
         return jobTitleRepository.findAll()

@@ -10,12 +10,14 @@ import com.elice.iliceworksbe.team.repository.UserTypeRepository;
 import com.elice.iliceworksbe.team.service.UserTypeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserTypeServiceImpl implements UserTypeService{
 
     private final UserTypeRepository userTypeRepository;
@@ -26,6 +28,7 @@ public class UserTypeServiceImpl implements UserTypeService{
         return UserTypeResponseDto.from(savedUserType);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public UserTypeResponseDto getUserType(Long userTypeId) {
         UserType findedUserType = userTypeRepository.findById(userTypeId)
@@ -33,6 +36,7 @@ public class UserTypeServiceImpl implements UserTypeService{
         return UserTypeResponseDto.from(findedUserType);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserTypeResponseDto> getAllUserTypes() {
         return userTypeRepository.findAll()

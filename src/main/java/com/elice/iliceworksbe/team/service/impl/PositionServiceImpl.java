@@ -10,12 +10,14 @@ import com.elice.iliceworksbe.team.repository.PositionRepository;
 import com.elice.iliceworksbe.team.service.PositionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PositionServiceImpl implements PositionService {
 
     private final PositionRepository positionRepository;
@@ -26,6 +28,7 @@ public class PositionServiceImpl implements PositionService {
         return PositionResponseDto.from(savedPosition);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public PositionResponseDto getPosition(Long positionId) {
         Position findedPosition = positionRepository.findById(positionId)
@@ -33,6 +36,7 @@ public class PositionServiceImpl implements PositionService {
         return PositionResponseDto.from(findedPosition);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<PositionResponseDto> getAllPositions() {
         return positionRepository.findAll()
