@@ -7,8 +7,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 public interface NotificationService {
     SseEmitter createEmitter(String username);
     void sendNotification(String username, String message);
-//    void checkAndSendScheduledNotification();
+    void checkAndSendScheduledNotification();
     EventNotificationResponseDto createEventNotification(EventNotificationRequestDto eventNotificationRequestDto);
-
-
 }

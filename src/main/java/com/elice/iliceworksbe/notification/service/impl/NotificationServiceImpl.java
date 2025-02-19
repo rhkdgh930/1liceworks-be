@@ -16,10 +16,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -77,6 +79,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     /**
      * 특정 사용자에게 실시간 알림 전송
+     *
      * @param username
      * @param message
      */
@@ -87,13 +90,44 @@ public class NotificationServiceImpl implements NotificationService {
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event().name("notification").data(message));
-            } catch (IOException e) {
-                emitters.remove(username);
+            } catch (IOException | IllegalStateException e) {
+                log.warn("실시간 알림 발송 실패");
+                emitters.remove(username, emitter);
             }
         }
     }
 
+    /**
+     * notifyTime이 현재 시간과 일치하는 알림을 사용자에게 전송
+     */
+    @Override
+    @Transactional
+    @Scheduled(fixedRate = 10000) //10초마다 실행
+    public void checkAndSendScheduledNotification() {
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        LocalDateTime start = now.minusSeconds(1);
+        LocalDateTime end = now.plusSeconds(1);
 
+        List<EventNotification> notifications = notificationRepository.findByNotifyTimeBetween(start, end);
+        log.info("notification 보내기{}", notifications);
+        if (!notifications.isEmpty()) {
+            log.info("발송할 알림 개수: {}", notifications.size());
+            for (EventNotification notification : notifications) {
+                try {
+                    sendNotification(notification.getUser().getAccountId(), notification.getMessage());
+                } catch (Exception e) {
+                    log.error("알림 전송 실패 - 사용자: {}, 오류: {}", notification.getUser().getUsername(), e.getMessage(), e);
+                }
+            }
+        }
+    }
+
+    /**
+     * 일정 생성시 알림 테이블에 insert
+     *
+     * @param requestDto
+     * @return
+     */
     @Override
     public EventNotificationResponseDto createEventNotification(EventNotificationRequestDto requestDto) {
         User user = userRepository.findByAccountId(requestDto.username())
@@ -106,6 +140,4 @@ public class NotificationServiceImpl implements NotificationService {
         return EventNotificationResponseDto.from(savedNotification);
     }
 
-
-    
 }
