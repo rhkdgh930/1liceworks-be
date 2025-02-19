@@ -46,7 +46,6 @@ public class NotificationServiceImpl implements NotificationService {
         SseEmitter emitter = new SseEmitter(60 * 1000L); // 1분 유지
         configureEmitter(username, emitter);
         emitters.put(username, emitter);
-
         return emitter;
     }
 
