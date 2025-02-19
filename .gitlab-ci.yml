@@ -47,6 +47,8 @@ deploy:
   tags:
     - all
   script:
+    - echo "discord webhook url: $DISCORD_WEBHOOK_1LICEWORKS_URL"
+    - export $DISCORD_WEBHOOK_1LICEWORKS_URL
     - echo "cicd script running..."
     - sh deploy.sh
   only:
