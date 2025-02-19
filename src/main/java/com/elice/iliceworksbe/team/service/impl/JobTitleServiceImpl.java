@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,5 +60,14 @@ public class JobTitleServiceImpl implements JobTitleService {
     @Override
     public void deleteJobTitle(Long jobTitleId) {
         jobTitleRepository.deleteById(jobTitleId);
+    }
+
+    @PostConstruct
+    public void init() {
+        JobTitle jobTitle = JobTitle.builder()
+                .name("none")
+                .build();
+
+        jobTitleRepository.save(jobTitle);
     }
 }
