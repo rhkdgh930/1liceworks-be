@@ -18,18 +18,17 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class UserTypeServiceImpl implements UserTypeService{
 
     private final UserTypeRepository userTypeRepository;
 
+    @Transactional
     @Override
     public UserTypeResponseDto postUserType(UserTypeRequestDto userTypeRequestDto) {
         UserType savedUserType = userTypeRepository.save(UserType.from(userTypeRequestDto));
         return UserTypeResponseDto.from(savedUserType);
     }
 
-    @Transactional(readOnly = true)
     @Override
     public UserTypeResponseDto getUserType(Long userTypeId) {
         UserType findedUserType = userTypeRepository.findById(userTypeId)
@@ -37,7 +36,6 @@ public class UserTypeServiceImpl implements UserTypeService{
         return UserTypeResponseDto.from(findedUserType);
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<UserTypeResponseDto> getAllUserTypes() {
         return userTypeRepository.findAll()
@@ -46,6 +44,7 @@ public class UserTypeServiceImpl implements UserTypeService{
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public UserTypeResponseDto patchUserType(Long userTypeId, UserTypeUpdateDto userTypeUpdateDto) {
         UserType findedUserType = userTypeRepository.findById(userTypeId)
@@ -57,6 +56,7 @@ public class UserTypeServiceImpl implements UserTypeService{
         return UserTypeResponseDto.from(updatedUserType);
     }
 
+    @Transactional
     @Override
     public void deleteUserType(Long userTypeId) {
         userTypeRepository.deleteById(userTypeId);
@@ -65,7 +65,7 @@ public class UserTypeServiceImpl implements UserTypeService{
     @PostConstruct
     public void init() {
         UserType userType = UserType.builder()
-                .name("none")
+                .name("없음")
                 .build();
 
         userTypeRepository.save(userType);

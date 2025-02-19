@@ -18,18 +18,17 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class PositionServiceImpl implements PositionService {
 
     private final PositionRepository positionRepository;
 
+    @Transactional
     @Override
     public PositionResponseDto postPosition(PositionRequestDto positionRequestDto) {
         Position savedPosition = positionRepository.save(Position.from(positionRequestDto));
         return PositionResponseDto.from(savedPosition);
     }
 
-    @Transactional(readOnly = true)
     @Override
     public PositionResponseDto getPosition(Long positionId) {
         Position findedPosition = positionRepository.findById(positionId)
@@ -37,7 +36,6 @@ public class PositionServiceImpl implements PositionService {
         return PositionResponseDto.from(findedPosition);
     }
 
-    @Transactional(readOnly = true)
     @Override
     public List<PositionResponseDto> getAllPositions() {
         return positionRepository.findAll()
@@ -46,6 +44,7 @@ public class PositionServiceImpl implements PositionService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public PositionResponseDto patchPosition(Long positionId, PositionUpdateDto positionUpdateDto) {
         Position findedPosition = positionRepository.findById(positionId)
@@ -57,6 +56,7 @@ public class PositionServiceImpl implements PositionService {
         return PositionResponseDto.from(updatedPosition);
     }
 
+    @Transactional
     @Override
     public void deletePosition(Long positionId) {
         positionRepository.deleteById(positionId);
@@ -65,7 +65,7 @@ public class PositionServiceImpl implements PositionService {
     @PostConstruct
     public void init() {
         Position position = Position.builder()
-                .name("none")
+                .name("없음")
                 .build();
 
         positionRepository.save(position);
