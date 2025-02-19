@@ -16,7 +16,6 @@ public class EmailProperty {
 
     @Data
     public static class Properties {
-
         private Smtp smtp;
 
         @Data
