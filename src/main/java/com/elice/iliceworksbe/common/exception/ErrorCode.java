@@ -24,13 +24,16 @@ public enum ErrorCode {
      */
     USERS_INFO_UNKNOWN(false, HttpStatus.BAD_REQUEST.value(), "알 수 없는 유저입니다."),
 
+    UNVERIFIED_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "인증되지 않은 이메일입니다."),
     POST_USERS_INVALID_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "이메일 형식을 확인해주세요."),
-    POST_USERS_EXISTS_USERID(false,HttpStatus.BAD_REQUEST.value(),"중복된 사용자입니다."),
+    POST_USERS_EXISTS_ACCOUNTID(false,HttpStatus.BAD_REQUEST.value(),"중복된 계정ID입니다."),
     POST_TEST_EXISTS_MEMO(false,HttpStatus.BAD_REQUEST.value(),"중복된 메모입니다."),
 
+    WRONG_AUTH_CODE(false, HttpStatus.CONFLICT.value(), "잘못된 인증코드입니다."),
 
     RESPONSE_ERROR(false, HttpStatus.NOT_FOUND.value(), "값을 불러오는데 실패하였습니다."),
 
+    DUPLICATED_ACCOUNTID(false, HttpStatus.BAD_REQUEST.value(), "중복된 계정ID입니다."),
     DUPLICATED_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "중복된 이메일입니다."),
     FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(),"없는 아이디거나 비밀번호가 틀렸습니다."),
     EMPTY_JWT(false, HttpStatus.UNAUTHORIZED.value(), "JWT를 입력해주세요."),
