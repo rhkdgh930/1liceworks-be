@@ -1,6 +1,6 @@
 package com.elice.iliceworksbe.auth.filter;
 
-import com.elice.iliceworksbe.auth.dto.LoginRequestDTO;
+import com.elice.iliceworksbe.auth.dto.request.LoginRequestDto;
 import com.elice.iliceworksbe.auth.model.UserDetailsImpl;
 import com.elice.iliceworksbe.auth.utils.JwtTokenProvider;
 import com.elice.iliceworksbe.auth.utils.RefreshTokenProvider;
@@ -36,7 +36,7 @@ public class JwtLoginAuthenticationFilter extends UsernamePasswordAuthentication
         log.info("JwtLoginAuthenticationFilter 필터 - attemptAuthentication");
         try {
             // 클라이언트에서 전송한 사용자 정보를 객체로 변환
-            LoginRequestDTO loginRequestDTO = new ObjectMapper().readValue(request.getInputStream(), LoginRequestDTO.class);
+            LoginRequestDto loginRequestDTO = new ObjectMapper().readValue(request.getInputStream(), LoginRequestDto.class);
 
             // AuthenticationManager가 이메일과 비밀번호를 검증할 수 있도록 검증용 토큰을 만듦.
             UsernamePasswordAuthenticationToken authenticationToken =
