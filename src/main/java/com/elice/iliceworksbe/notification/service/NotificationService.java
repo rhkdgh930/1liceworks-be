@@ -8,5 +8,5 @@ public interface NotificationService {
     SseEmitter createEmitter(String username);
     void sendNotification(String username, String message);
     void checkAndSendScheduledNotification();
-    EventNotificationResponseDto createEventNotification(EventNotificationRequestDto eventNotificationRequestDto);
+    EventNotificationResponseDto postEventNotification(EventNotificationRequestDto eventNotificationRequestDto);
 }

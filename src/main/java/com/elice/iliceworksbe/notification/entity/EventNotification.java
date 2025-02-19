@@ -45,13 +45,19 @@ public class EventNotification extends BaseEntity {
     @JoinColumn(name = "event_id")
     private Event event;
 
-    public static EventNotification from(EventNotificationRequestDto requestDto, User user, Event event){
+    public static EventNotification from(EventNotificationRequestDto requestDto){
         return EventNotification.builder()
                 .notifyTime(requestDto.notifyTime())
                 .message(requestDto.message())
                 .isRead(false)
-                .user(user)
-                .event(event)
                 .build();
+    }
+
+    public void assignUser(User user) {
+        this.user = user;
+    }
+
+    public void assignEvent(Event event) {
+        this.event = event;
     }
 }

@@ -101,7 +101,7 @@ public class NotificationServiceImpl implements NotificationService {
      */
     @Override
     @Transactional
-    @Scheduled(fixedRate = 10000) //10초마다 실행
+    @Scheduled(fixedRate = 60000) // 1분마다 실행
     public void checkAndSendScheduledNotification() {
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         LocalDateTime start = now.minusSeconds(1);
@@ -123,19 +123,22 @@ public class NotificationServiceImpl implements NotificationService {
 
     /**
      * 일정 생성시 알림 테이블에 insert
-     *
      * @param requestDto
      * @return
      */
     @Override
-    public EventNotificationResponseDto createEventNotification(EventNotificationRequestDto requestDto) {
+    public EventNotificationResponseDto postEventNotification(EventNotificationRequestDto requestDto) {
         User user = userRepository.findByAccountId(requestDto.username())
                 .orElseThrow(() -> new BaseException(ErrorCode.USERS_INFO_UNKNOWN));
 
         Event event = eventRepository.findById(requestDto.eventId())
                 .orElseThrow(() -> new BaseException(ErrorCode.EVENT_NOT_FOUND));
 
-        EventNotification savedNotification = notificationRepository.save(EventNotification.from(requestDto, user, event));
+        EventNotification eventNotification = EventNotification.from(requestDto);
+        eventNotification.assignUser(user);
+        eventNotification.assignEvent(event);
+
+        EventNotification savedNotification = notificationRepository.save(eventNotification);
         return EventNotificationResponseDto.from(savedNotification);
     }
 
