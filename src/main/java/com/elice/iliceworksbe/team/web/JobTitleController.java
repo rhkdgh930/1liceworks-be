@@ -7,6 +7,7 @@ import com.elice.iliceworksbe.team.dto.jobTitle.JobTitleRequestDto;
 import com.elice.iliceworksbe.team.dto.jobTitle.JobTitleResponseDto;
 import com.elice.iliceworksbe.team.dto.jobTitle.JobTitleUpdateDto;
 import com.elice.iliceworksbe.team.service.JobTitleService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class JobTitleController {
     @PostMapping
     public BaseResponse<JobTitleResponseDto> postJobTitle(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @RequestBody JobTitleRequestDto jobTitleRequestDto) {
+            @Valid @RequestBody JobTitleRequestDto jobTitleRequestDto) {
         JobTitleResponseDto postResponseDto = jobTitleService.postJobTitle(jobTitleRequestDto);
         return new BaseResponse<>(postResponseDto);
     }
@@ -47,7 +48,7 @@ public class JobTitleController {
     public BaseResponse<JobTitleResponseDto> patchJobTitle(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long jobTitleId,
-            @RequestBody JobTitleUpdateDto jobTitleUpdateDto) {
+            @Valid @RequestBody JobTitleUpdateDto jobTitleUpdateDto) {
         JobTitleResponseDto patchResponseDto = jobTitleService.patchJobTitle(jobTitleId, jobTitleUpdateDto);
         return new BaseResponse<>(patchResponseDto);
     }
