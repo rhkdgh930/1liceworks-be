@@ -39,7 +39,7 @@ build:
     - echo "Starting deployment"
     - cp build/libs/iliceworks-be-0.0.1-SNAPSHOT.jar /home/gitlab-runner/app/demo.jar
   only:
-    - main
+    - dev
 
 deploy:
   stage: deploy
@@ -49,4 +49,4 @@ deploy:
     - echo "cicd script running..."
     - sh deploy.sh
   only:
-    - main
+    - dev
