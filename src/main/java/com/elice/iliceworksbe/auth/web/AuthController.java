@@ -1,6 +1,8 @@
 package com.elice.iliceworksbe.auth.web;
 
 import com.elice.iliceworksbe.auth.dto.request.*;
+import com.elice.iliceworksbe.auth.dto.response.GetProfileResponseDto;
+import com.elice.iliceworksbe.auth.model.UserDetailsImpl;
 import com.elice.iliceworksbe.auth.service.AuthService;
 import com.elice.iliceworksbe.common.exception.BaseResponse;
 import com.elice.iliceworksbe.common.exception.ErrorCode;
@@ -9,7 +11,13 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -52,5 +60,39 @@ public class AuthController {
     public BaseResponse<String> signup(@RequestBody @Valid SignUpRequestDto signUpRequestDto) {
         authService.signUp(signUpRequestDto);
         return new BaseResponse<>(ErrorCode.SUCCESS);
+    }
+
+    @Operation(summary = "내 프로필 조회", description = "이메일, 사용자명, 프로필이미지 등을 조회합니다.")
+    @GetMapping("/my-profile")
+    public BaseResponse<GetProfileResponseDto> getMyProfile(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return new BaseResponse<>(authService.getMyProfile(userDetails.getUserId()));
+    }
+
+    @Operation(summary = "팀장의 모든 구성원 프로필 조회", description = "팀원들의 모든 이메일, 사용자명, 프로필이미지 등을 조회합니다.")
+    @PreAuthorize("hasAuthority('LEADER')")
+    @GetMapping("/profile")
+    public BaseResponse<List<GetProfileResponseDto>> getAllMemberProfiles(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return new BaseResponse<>(authService.getAllMemberProfiles(userDetails.getUserId()));
+    }
+
+    @Operation(summary = "내 프로필 변경", description = "프로필 변경입니다.")
+    @PatchMapping(value = "/my-profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public BaseResponse<Void> patchMyProfile(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                                  @RequestPart(value = "image", required = false) MultipartFile profileImage,
+                                                                  @RequestPart(value = "text") @Valid PatchProfileRequestDto patchProfileRequestDto
+    ) {
+        authService.patchMyProfile(userDetails.getUserId(), patchProfileRequestDto, profileImage);
+        return new BaseResponse<>(ErrorCode.NO_CONTENT);
+    }
+
+    @Operation(summary = "팀원 프로필 변경", description = "프로필 변경입니다.")
+    @PreAuthorize("hasAuthority('LEADER')")
+    @PatchMapping(value = "/profile/{userId}")
+    public BaseResponse<Void> patchMemberProfile(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                 @PathVariable Long userId,
+                                                 @RequestBody PatchMemberProfileRequestDto patchProfileRequestDto
+    ) {
+        authService.patchMemberProfile(userDetails.getUserId(), userId, patchProfileRequestDto);
+        return new BaseResponse<>(ErrorCode.NO_CONTENT);
     }
 }
