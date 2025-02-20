@@ -24,6 +24,12 @@ public class PositionServiceImpl implements PositionService {
     @Transactional
     @Override
     public PositionResponseDto postPosition(PositionRequestDto positionRequestDto) {
+        boolean condition = positionRepository.existsByName(positionRequestDto.name());
+
+        if (condition) {
+            throw new BaseException(ErrorCode.DUPLICATED_POSITION_NAME);
+        }
+
         Position savedPosition = positionRepository.save(Position.from(positionRequestDto));
         return PositionResponseDto.from(savedPosition);
     }
@@ -61,9 +67,4 @@ public class PositionServiceImpl implements PositionService {
         positionRepository.deleteById(positionId);
     }
 
-    @Override
-    public Position getPositionByName(String name) {
-        return positionRepository.findByName(name)
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_POSITION));
-    }
 }

@@ -24,6 +24,12 @@ public class UserTypeServiceImpl implements UserTypeService{
     @Transactional
     @Override
     public UserTypeResponseDto postUserType(UserTypeRequestDto userTypeRequestDto) {
+        boolean condition = userTypeRepository.existsByName(userTypeRequestDto.name());
+
+        if (condition) {
+            throw new BaseException(ErrorCode.DUPLICATED_USER_TYPE_NAME);
+        }
+
         UserType savedUserType = userTypeRepository.save(UserType.from(userTypeRequestDto));
         return UserTypeResponseDto.from(savedUserType);
     }
@@ -61,9 +67,4 @@ public class UserTypeServiceImpl implements UserTypeService{
         userTypeRepository.deleteById(userTypeId);
     }
 
-    @Override
-    public UserType getUserTypeByName(String name) {
-        return userTypeRepository.findByName(name)
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER_TYPE));
-    }
 }

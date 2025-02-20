@@ -24,6 +24,12 @@ public class JobTitleServiceImpl implements JobTitleService {
     @Transactional
     @Override
     public JobTitleResponseDto postJobTitle(JobTitleRequestDto jobTitleRequestDto) {
+        boolean condition = jobTitleRepository.existsByName(jobTitleRequestDto.name());
+
+        if (condition) {
+            throw new BaseException(ErrorCode.DUPLICATED_JOB_TITLE_NAME);
+        }
+
         JobTitle savedJobTitle = jobTitleRepository.save(JobTitle.from(jobTitleRequestDto));
         return JobTitleResponseDto.from(savedJobTitle);
     }
@@ -61,9 +67,4 @@ public class JobTitleServiceImpl implements JobTitleService {
         jobTitleRepository.deleteById(jobTitleId);
     }
 
-    @Override
-    public JobTitle getJobTileByName(String name) {
-        return jobTitleRepository.findByName(name)
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_JOB_TITLE));
-    }
 }
