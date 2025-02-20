@@ -21,4 +21,6 @@ public interface AuthService extends UserDetailsService {
     GetProfileResponseDto getMyProfile(Long userId);
 
     void patchMyProfile(Long userId, PatchProfileRequestDto patchProfileRequestDto, MultipartFile profileImage);
+
+    void patchMemberProfile(Long leaderUserId, Long memberUserId, PatchMemberProfileRequestDto patchProfileRequestDto);
 }

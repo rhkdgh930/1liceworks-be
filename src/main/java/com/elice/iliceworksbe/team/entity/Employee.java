@@ -1,5 +1,6 @@
 package com.elice.iliceworksbe.team.entity;
 
+import com.elice.iliceworksbe.auth.dto.request.PatchMemberProfileRequestDto;
 import com.elice.iliceworksbe.auth.entity.User;
 import com.elice.iliceworksbe.common.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -54,5 +55,13 @@ public class Employee extends BaseEntity{
 
     public void designateResponsibility(String responsibility) {
         this.responsibility = responsibility;
+    }
+
+    public void patchProfile(PatchMemberProfileRequestDto patchProfileRequestDto, Position patchedPosition, JobTitle patchedJobTitle, UserType patchedUserType) {
+        this.responsibility = patchProfileRequestDto.responsibility();
+        this.employeeNumber = patchProfileRequestDto.employeeNumber();
+        this.jobTitle = patchedJobTitle;
+        this.position = patchedPosition;
+        this.userType = patchedUserType;
     }
 }

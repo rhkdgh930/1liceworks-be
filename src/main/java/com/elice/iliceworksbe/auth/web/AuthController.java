@@ -84,4 +84,15 @@ public class AuthController {
         authService.patchMyProfile(userDetails.getUserId(), patchProfileRequestDto, profileImage);
         return new BaseResponse<>(ErrorCode.NO_CONTENT);
     }
+
+    @Operation(summary = "팀원 프로필 변경", description = "프로필 변경입니다.")
+    @PreAuthorize("hasAuthority('LEADER')")
+    @PatchMapping(value = "/profile/{userId}")
+    public BaseResponse<Void> patchMemberProfile(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                 @PathVariable Long userId,
+                                                 @RequestBody PatchMemberProfileRequestDto patchProfileRequestDto
+    ) {
+        authService.patchMemberProfile(userDetails.getUserId(), userId, patchProfileRequestDto);
+        return new BaseResponse<>(ErrorCode.NO_CONTENT);
+    }
 }

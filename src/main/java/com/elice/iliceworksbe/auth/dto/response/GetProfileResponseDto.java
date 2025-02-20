@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 
 @Builder
 public record GetProfileResponseDto(
+        Long userId,
         String username,
         String accountId,
         String profileImage,
@@ -22,6 +23,7 @@ public record GetProfileResponseDto(
 ) {
     public static GetProfileResponseDto of(User user, Employee employee) {
         return GetProfileResponseDto.builder()
+                .userId(user.getId())
                 .username(user.getUsername())
                 .accountId(user.getAccountId())
                 .profileImage(user.getProfileImage())

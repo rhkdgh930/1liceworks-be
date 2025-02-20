@@ -13,10 +13,8 @@ import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.elice.iliceworksbe.common.model.RedisDAO;
 import com.elice.iliceworksbe.common.service.EmailService;
 import com.elice.iliceworksbe.common.service.FirebaseStorageService;
-import com.elice.iliceworksbe.team.entity.Employee;
-import com.elice.iliceworksbe.team.entity.Team;
-import com.elice.iliceworksbe.team.repository.EmployeeRepository;
-import com.elice.iliceworksbe.team.repository.TeamRepository;
+import com.elice.iliceworksbe.team.entity.*;
+import com.elice.iliceworksbe.team.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +43,9 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final RedisDAO redisDAO;
+    private final PositionRepository positionRepository;
+    private final JobTitleRepository jobTitleRepository;
+    private final UserTypeRepository userTypeRepository;
 
     @Override
     public UserDetails loadUserByUsername(String accountId) throws UsernameNotFoundException {
@@ -184,10 +185,36 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 2. 프로필 수정
-        user.patchProfile(patchProfileRequestDto, updatedProfileImageUrl);
+        user.patchMyProfile(patchProfileRequestDto, updatedProfileImageUrl);
         employee.designateResponsibility(patchProfileRequestDto.responsibility());
 
         userRepository.save(user);
         employeeRepository.save(employee);
+    }
+
+    @Override
+    @Transactional
+    public void patchMemberProfile(Long leaderUserId, Long memberUserId, PatchMemberProfileRequestDto patchProfileRequestDto) {
+        // 1. leaderUserId로 팀 조회
+        Team team = userRepository.findById(leaderUserId).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER)).getTeam();
+
+        // 2. 해당 팀에 userId가 존재하는지 확인
+        User memberUser = userRepository.findById(memberUserId).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
+
+        if (!memberUser.getTeam().equals(team)) {
+            throw new BaseException(ErrorCode.WRONG_AUTHORIZATION);
+        }
+
+        // 3. employee 정보 조회
+        Employee employee = employeeRepository.findEmployeeByUser(memberUser).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
+
+        // 4. position, jobtitle, usertype 조회
+        Position patchedPosition = positionRepository.findByName(patchProfileRequestDto.position()).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_POSITION));
+        JobTitle patchedJobTitle = jobTitleRepository.findByName(patchProfileRequestDto.jobTitle()).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_JOB_TITLE));
+        UserType patchedUserType = userTypeRepository.findByName(patchProfileRequestDto.userType()).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER_TYPE));
+
+        // 5. 해당 user 정보 변경
+        memberUser.patchUsername(patchProfileRequestDto.username());
+        employee.patchProfile(patchProfileRequestDto, patchedPosition, patchedJobTitle, patchedUserType);
     }
 }

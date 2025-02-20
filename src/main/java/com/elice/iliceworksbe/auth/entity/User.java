@@ -58,9 +58,13 @@ public class User extends BaseEntity {
     @JoinColumn(name = "team_id")
     private Team team;
 
-    public void patchProfile(PatchProfileRequestDto patchProfileRequestDto, String updatedProfileImageUrl) {
+    public void patchMyProfile(PatchProfileRequestDto patchProfileRequestDto, String updatedProfileImageUrl) {
         this.username = patchProfileRequestDto.username();
         this.phone = patchProfileRequestDto.phone();
         this.profileImage = updatedProfileImageUrl;
+    }
+
+    public void patchUsername(String username) {
+        this.username = username;
     }
 }

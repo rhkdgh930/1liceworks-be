@@ -42,6 +42,10 @@ public enum ErrorCode {
     NOT_FIND_USER(false,HttpStatus.NOT_FOUND.value(),"일치하는 유저가 없습니다."),
     NOT_FIND_EMPLOYEE(false,HttpStatus.NOT_FOUND.value(),"일치하는 직원이 없습니다."),
 
+    NOT_FIND_POSITION(false,HttpStatus.NOT_FOUND.value(),"일치하는 직급이 없습니다."),
+    NOT_FIND_JOB_TITLE(false,HttpStatus.NOT_FOUND.value(),"일치하는 직책이 없습니다."),
+    NOT_FIND_USER_TYPE(false,HttpStatus.NOT_FOUND.value(),"일치하는 사용자 유형이 없습니다."),
+
     USER_TYPE_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "일치하는 유저 타입이 없습니다."),
     POSITION_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "일치하는 직급이 없습니다."),
 
