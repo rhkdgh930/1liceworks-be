@@ -1,17 +1,26 @@
 package com.elice.iliceworksbe.auth.service;
 
-import com.elice.iliceworksbe.auth.dto.request.CheckDuplicateAccountIdRequestDto;
-import com.elice.iliceworksbe.auth.dto.request.ConfirmEmailRequestDto;
-import com.elice.iliceworksbe.auth.dto.request.SignUpRequestDto;
-import com.elice.iliceworksbe.auth.dto.request.VerifyEmailRequestDto;
+import com.elice.iliceworksbe.auth.dto.request.*;
+import com.elice.iliceworksbe.auth.dto.response.GetProfileResponseDto;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.multipart.MultipartFile;
 
-public interface AuthService  extends UserDetailsService {
+import java.util.List;
+
+public interface AuthService extends UserDetailsService {
 
     UserDetails loadUserByUsername(String accountId);
     void verifyEmail(VerifyEmailRequestDto verifyEmailRequestDto);
     void confirmVerificationCode(ConfirmEmailRequestDto confirmEmailRequestDto);
     Boolean checkDuplicateAccountId(CheckDuplicateAccountIdRequestDto checkDuplicateAccountIdRequestDTO);
     void signUp(SignUpRequestDto signUpRequestDto);
+
+    List<GetProfileResponseDto> getAllMemberProfiles(Long userId);
+
+    GetProfileResponseDto getMyProfile(Long userId);
+
+    void patchMyProfile(Long userId, PatchProfileRequestDto patchProfileRequestDto, MultipartFile profileImage);
+
+    void patchMemberProfile(Long leaderUserId, Long memberUserId, PatchMemberProfileRequestDto patchProfileRequestDto);
 }

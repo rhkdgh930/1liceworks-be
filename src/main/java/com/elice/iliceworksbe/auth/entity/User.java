@@ -1,5 +1,6 @@
 package com.elice.iliceworksbe.auth.entity;
 
+import com.elice.iliceworksbe.auth.dto.request.PatchProfileRequestDto;
 import com.elice.iliceworksbe.common.constant.Role;
 import com.elice.iliceworksbe.common.constant.Status;
 import com.elice.iliceworksbe.common.entity.BaseEntity;
@@ -57,7 +58,13 @@ public class User extends BaseEntity {
     @JoinColumn(name = "team_id")
     private Team team;
 
-    public void updateUserName(String username) {
+    public void patchMyProfile(PatchProfileRequestDto patchProfileRequestDto, String updatedProfileImageUrl) {
+        this.username = patchProfileRequestDto.username();
+        this.phone = patchProfileRequestDto.phone();
+        this.profileImage = updatedProfileImageUrl;
+    }
+
+    public void patchUsername(String username) {
         this.username = username;
     }
 }

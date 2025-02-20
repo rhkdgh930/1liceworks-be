@@ -86,11 +86,11 @@ public class TeamServiceImpl implements TeamService {
         User teamMember = userRepository.findById(memberId)
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
 
-        Employee employee = employeeRepository.findByUser(teamMember)
+        Employee employee = employeeRepository.findEmployeeByUser(teamMember)
                 .orElseThrow(() -> new BaseException(ErrorCode.EMPLOYEE_NOT_FOUND));
 
         if (teamMemberInfoUpdateDto.userName() != null && !teamMemberInfoUpdateDto.userName().isBlank()) {
-            teamMember.updateUserName(teamMemberInfoUpdateDto.userName());
+            teamMember.patchUsername(teamMemberInfoUpdateDto.userName());
         }
 
         UserType userType = userTypeService.getUserTypeByName(teamMemberInfoUpdateDto.userTypeName());
