@@ -1,7 +1,6 @@
 package com.elice.iliceworksbe.notification.entity;
 
 import com.elice.iliceworksbe.auth.entity.User;
-import com.elice.iliceworksbe.calendar.entity.Event;
 import com.elice.iliceworksbe.common.entity.BaseEntity;
 import com.elice.iliceworksbe.notification.dto.request.EventNotificationRequestDto;
 import jakarta.persistence.*;
@@ -19,13 +18,13 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "EVENT_NOTIFICATION")
+@Table(name = "NOTIFICATION")
 @AuditOverride(forClass = BaseEntity.class)
-public class EventNotification extends BaseEntity {
+public class Notification extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "event_notification_id")
+    @Column(name = "notification_id")
     private Long id;
 
     @Column(name = "message")
@@ -41,12 +40,8 @@ public class EventNotification extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id")
-    private Event event;
-
-    public static EventNotification from(EventNotificationRequestDto requestDto){
-        return EventNotification.builder()
+    public static Notification from(EventNotificationRequestDto requestDto){
+        return Notification.builder()
                 .notifyTime(requestDto.notifyTime())
                 .message(requestDto.message())
                 .isRead(false)
@@ -57,7 +52,4 @@ public class EventNotification extends BaseEntity {
         this.user = user;
     }
 
-    public void assignEvent(Event event) {
-        this.event = event;
-    }
 }
