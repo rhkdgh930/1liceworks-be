@@ -32,7 +32,7 @@ public class EventReminder extends BaseEntity {
     @JoinColumn(name = "event_id")
     private Event event;
 
-    public static EventReminder from(EventReminderRequestDto requestDto){
+    public static EventReminder from(EventReminderRequestDto requestDto) {
         return EventReminder.builder()
                 .notifyTime(requestDto.notifyTime())
                 .build();

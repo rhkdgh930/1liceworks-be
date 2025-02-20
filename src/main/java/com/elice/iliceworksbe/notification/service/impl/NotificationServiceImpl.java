@@ -72,7 +72,7 @@ public class NotificationServiceImpl implements NotificationService {
     /**
      * 모든 클라이언트에게 Ping 메시지 전송
      */
-    public void sendBroadcastPing() {
+    private void sendBroadcastPing() {
         emitters.forEach((userId, emitter) -> {
             try {
                 emitter.send(SseEmitter.event().name("ping").data("keep-alive"));

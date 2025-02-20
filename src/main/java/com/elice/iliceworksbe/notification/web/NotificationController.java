@@ -20,11 +20,6 @@ public class NotificationController {
 
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        // 인증되지 않은 사용자 예외 처리
-        if (userDetails == null || userDetails.getUserId() == null) {
-            log.warn("SSE 구독 요청 거부: 인증되지 않은 사용자");
-            throw new BaseException(ErrorCode.INVALID_USER_JWT);
-        }
         Long userId = userDetails.getUserId();
         log.info("SSE 구독 요청: userId={}", userId);
         return notificationService.createEmitter(userId); // SseEmitter를 반환
