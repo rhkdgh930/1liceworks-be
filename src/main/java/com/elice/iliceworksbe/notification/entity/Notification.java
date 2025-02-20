@@ -2,7 +2,7 @@ package com.elice.iliceworksbe.notification.entity;
 
 import com.elice.iliceworksbe.auth.entity.User;
 import com.elice.iliceworksbe.common.entity.BaseEntity;
-import com.elice.iliceworksbe.notification.dto.request.EventNotificationRequestDto;
+import com.elice.iliceworksbe.notification.dto.request.NotificationRequestDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,10 +40,10 @@ public class Notification extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public static Notification from(EventNotificationRequestDto requestDto){
+    public static Notification from(NotificationRequestDto requestDto) {
         return Notification.builder()
-                .notifyTime(requestDto.notifyTime())
                 .message(requestDto.message())
+                .notifyTime(LocalDateTime.now())
                 .isRead(false)
                 .build();
     }
@@ -51,5 +51,4 @@ public class Notification extends BaseEntity {
     public void assignUser(User user) {
         this.user = user;
     }
-
 }
