@@ -35,7 +35,6 @@ public class NotificationServiceImpl implements NotificationService {
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
-    private static final Long TIMEOUT = 30 * 60 * 1000L; // 30분
 
     /**
      * SSE 연결
@@ -45,7 +44,7 @@ public class NotificationServiceImpl implements NotificationService {
      */
     @Override
     public SseEmitter createEmitter(String username) {
-        SseEmitter emitter = new SseEmitter(TIMEOUT); // 30분 유지
+        SseEmitter emitter = new SseEmitter(30 * 60 * 1000L); // 30분 유지
         configureEmitter(username, emitter);
         emitters.put(username, emitter);
         return emitter;
@@ -76,6 +75,28 @@ public class NotificationServiceImpl implements NotificationService {
             emitter.complete();
 
         });
+    }
+
+    /**
+     * 모든 클라이언트에게 Ping 메시지 전송
+     */
+    public void sendBroadcastPing() {
+        emitters.forEach((username, emitter) -> {
+            try {
+                emitter.send(SseEmitter.event().name("ping").data("keep-alive"));
+            } catch (IOException | IllegalStateException e) {
+                log.warn("Ping 메시지 전송 실패 - 사용자: {}, 이유: {}", username, e.getMessage());
+                emitters.remove(username);
+            }
+        });
+    }
+
+    /**
+     * 1분마다 자동으로 Ping 메시지 전송
+     */
+    @Scheduled(fixedRate = 60 * 1000L)  // 1분마다 ping 전송
+    public void scheduledPing() {
+        sendBroadcastPing();
     }
 
     /**
@@ -125,6 +146,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     /**
      * 일정 생성시 알림 테이블에 insert
+     *
      * @param requestDto
      * @return
      */
@@ -146,6 +168,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     /**
      * 알림 조회 기능
+     *
      * @param userId
      * @return
      */
