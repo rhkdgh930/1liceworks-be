@@ -62,12 +62,33 @@ public class PositionServiceImpl implements PositionService {
         positionRepository.deleteById(positionId);
     }
 
+    @Override
+    public Position getPositionByName(String name) {
+        return positionRepository.findByName(name)
+                .orElseThrow(() -> new BaseException(ErrorCode.POSITION_NOT_FOUND));
+    }
+
     @PostConstruct
     public void init() {
-        Position position = Position.builder()
+        Position position1 = Position.builder()
                 .name("없음")
                 .build();
 
-        positionRepository.save(position);
+        Position position2 = Position.builder()
+                .name("관리직")
+                .build();
+
+        Position position3 = Position.builder()
+                .name("일반직")
+                .build();
+
+        Position position4 = Position.builder()
+                .name("아르바이트")
+                .build();
+
+        positionRepository.save(position1);
+        positionRepository.save(position2);
+        positionRepository.save(position3);
+        positionRepository.save(position4);
     }
 }

@@ -62,12 +62,28 @@ public class UserTypeServiceImpl implements UserTypeService{
         userTypeRepository.deleteById(userTypeId);
     }
 
+    @Override
+    public UserType getUserTypeByName(String name) {
+        return userTypeRepository.findByName(name)
+                .orElseThrow(() -> new BaseException(ErrorCode.USER_TYPE_NOT_FOUND));
+    }
+
     @PostConstruct
     public void init() {
-        UserType userType = UserType.builder()
+        UserType userType1 = UserType.builder()
                 .name("없음")
                 .build();
 
-        userTypeRepository.save(userType);
+        UserType userType2 = UserType.builder()
+                .name("정규직")
+                .build();
+
+        UserType userType3 = UserType.builder()
+                .name("계약직")
+                .build();
+
+        userTypeRepository.save(userType1);
+        userTypeRepository.save(userType2);
+        userTypeRepository.save(userType3);
     }
 }

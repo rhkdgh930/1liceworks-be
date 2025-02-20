@@ -62,12 +62,49 @@ public class JobTitleServiceImpl implements JobTitleService {
         jobTitleRepository.deleteById(jobTitleId);
     }
 
+    @Override
+    public JobTitle getJobTileByName(String name) {
+        return jobTitleRepository.findByName(name)
+                .orElseThrow(() -> new BaseException(ErrorCode.JOB_TITLE_NOT_FOUND));
+    }
+
     @PostConstruct
     public void init() {
-        JobTitle jobTitle = JobTitle.builder()
+        JobTitle jobTitle1 = JobTitle.builder()
                 .name("없음")
                 .build();
 
-        jobTitleRepository.save(jobTitle);
+        JobTitle jobTitle2 = JobTitle.builder()
+                .name("사장")
+                .build();
+
+        JobTitle jobTitle3 = JobTitle.builder()
+                .name("이사")
+                .build();
+
+        JobTitle jobTitle4 = JobTitle.builder()
+                .name("부장")
+                .build();
+
+        JobTitle jobTitle5 = JobTitle.builder()
+                .name("과장")
+                .build();
+
+        JobTitle jobTitle6 = JobTitle.builder()
+                .name("대리")
+                .build();
+
+        JobTitle jobTitle7 = JobTitle.builder()
+                .name("사원")
+                .build();
+
+        jobTitleRepository.save(jobTitle1);
+        jobTitleRepository.save(jobTitle2);
+        jobTitleRepository.save(jobTitle3);
+        jobTitleRepository.save(jobTitle4);
+        jobTitleRepository.save(jobTitle5);
+        jobTitleRepository.save(jobTitle6);
+        jobTitleRepository.save(jobTitle7);
+
     }
 }
