@@ -4,6 +4,7 @@ import com.elice.iliceworksbe.auth.dto.request.CheckDuplicateAccountIdRequestDto
 import com.elice.iliceworksbe.auth.dto.request.ConfirmEmailRequestDto;
 import com.elice.iliceworksbe.auth.dto.request.SignUpRequestDto;
 import com.elice.iliceworksbe.auth.dto.request.VerifyEmailRequestDto;
+import com.elice.iliceworksbe.auth.dto.response.GetProfileResponseDto;
 import com.elice.iliceworksbe.auth.entity.User;
 import com.elice.iliceworksbe.auth.model.UserDetailsImpl;
 import com.elice.iliceworksbe.auth.repository.UserRepository;
@@ -14,7 +15,9 @@ import com.elice.iliceworksbe.common.exception.BaseException;
 import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.elice.iliceworksbe.common.model.RedisDAO;
 import com.elice.iliceworksbe.common.service.EmailService;
+import com.elice.iliceworksbe.team.entity.Employee;
 import com.elice.iliceworksbe.team.entity.Team;
+import com.elice.iliceworksbe.team.repository.EmployeeRepository;
 import com.elice.iliceworksbe.team.repository.TeamRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +27,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.elice.iliceworksbe.auth.utils.VerificationCodeGenerator.generateVerificationCode;
 
@@ -35,6 +40,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final TeamRepository teamRepository;
+    private final EmployeeRepository employeeRepository;
 
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
@@ -121,18 +127,38 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(signUpUser);
     }
 
-    @PostConstruct
-    public void init(){
-        User user = User.builder()
-                .accountId("hi563@threadly.ilice-works.com")
-                .username("정태승")
-                .password(passwordEncoder.encode("!a12345678"))
-                .privateEmail("hi563@naver.com")
-                .role(Role.LEADER)
-                .status(Status.ACTIVE)
-                .isTeamCreated(false)
-                .build();
+    @Override
+    public List<GetProfileResponseDto> getAllMemberProfiles(Long userId) {
 
-        userRepository.save(user);
+        // 1. 현재 유저의 팀 정보 조회
+        Team team =  userRepository.findById(userId).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER)).getTeam();
+
+        // 2. 해당 팀에 속하는 모든 유저 조회
+        List<User> userList = userRepository.findByTeam(team);
+
+        // 3. 해당 팀에 속하는 유저의 직원 정보 조회
+        List<GetProfileResponseDto> memberProfiles = new ArrayList<>();
+
+        for(User user : userList){
+            Employee employee = employeeRepository.findEmployeeByUser(user).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
+
+            GetProfileResponseDto getProfileResponseDto = GetProfileResponseDto.builder()
+                    .username(user.getUsername())
+                    .accountId(user.getAccountId())
+                    .profileImage(user.getProfileImage())
+                    .phone(user.getPhone())
+                    .privateEmail(user.getPrivateEmail())
+                    .userType(employee.getUserType().getName())
+                    .position(employee.getPosition().getName())
+                    .jobTitle(employee.getJobTitle().getName())
+                    .responsibility(employee.getResponsibility())
+                    .employeeNumber(employee.getEmployeeNumber())
+                    .hireDate(employee.getHireDate().format(DateTimeFormatter.ofPattern("yyyy. MM. dd")))
+                    .build();
+
+            memberProfiles.add(getProfileResponseDto);
+        }
+
+        return memberProfiles;
     }
 }

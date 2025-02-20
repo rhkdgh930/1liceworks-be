@@ -1,6 +1,8 @@
 package com.elice.iliceworksbe.auth.web;
 
 import com.elice.iliceworksbe.auth.dto.request.*;
+import com.elice.iliceworksbe.auth.dto.response.GetProfileResponseDto;
+import com.elice.iliceworksbe.auth.model.UserDetailsImpl;
 import com.elice.iliceworksbe.auth.service.AuthService;
 import com.elice.iliceworksbe.common.exception.BaseResponse;
 import com.elice.iliceworksbe.common.exception.ErrorCode;
@@ -9,7 +11,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -52,5 +58,12 @@ public class AuthController {
     public BaseResponse<String> signup(@RequestBody @Valid SignUpRequestDto signUpRequestDto) {
         authService.signUp(signUpRequestDto);
         return new BaseResponse<>(ErrorCode.SUCCESS);
+    }
+
+    @Operation(summary = "모든 구성원 프로필 조회", description = "이메일, 사용자명, 프로필이미지 등을 조회합니다.")
+    @PreAuthorize("hasAuthority('LEADER')")
+    @GetMapping("/profile")
+    public BaseResponse<List<GetProfileResponseDto>> getAllMemberProfiles(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return new BaseResponse<>(authService.getAllMemberProfiles(userDetails.getUserId()));
     }
 }
