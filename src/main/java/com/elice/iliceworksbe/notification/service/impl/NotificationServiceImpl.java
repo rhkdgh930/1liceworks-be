@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -133,13 +134,20 @@ public class NotificationServiceImpl implements NotificationService {
         return NotificationResponseDto.from(savedNotification);
     }
 
+    /**
+     * Notification 테이블 조회 (최대 50개, 최대 1달)
+     * @param userId
+     * @return
+     */
     @Override
     @Transactional
     public List<NotificationResponseDto> getNotifications(Long userId) {
+        LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
+
         //DB에서 isRead = false인 알림 업데이트
         notificationRepository.markAllAsReadByUserId(userId);
 
-        return notificationRepository.findAllByUserId(userId)
+        return notificationRepository.findTop50ByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(userId, oneMonthAgo)
                 .stream()
                 .map(NotificationResponseDto::from)
                 .collect(Collectors.toList());
