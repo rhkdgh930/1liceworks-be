@@ -4,8 +4,10 @@ import com.elice.iliceworksbe.auth.dto.request.*;
 import com.elice.iliceworksbe.auth.dto.response.GetProfileResponseDto;
 import com.elice.iliceworksbe.auth.entity.User;
 import com.elice.iliceworksbe.auth.model.UserDetailsImpl;
+import com.elice.iliceworksbe.auth.repository.AuthTokenRepository;
 import com.elice.iliceworksbe.auth.repository.UserRepository;
 import com.elice.iliceworksbe.auth.service.AuthService;
+import com.elice.iliceworksbe.auth.utils.JwtTokenProvider;
 import com.elice.iliceworksbe.common.constant.Role;
 import com.elice.iliceworksbe.common.constant.Status;
 import com.elice.iliceworksbe.common.exception.BaseException;
@@ -15,6 +17,9 @@ import com.elice.iliceworksbe.common.service.EmailService;
 import com.elice.iliceworksbe.common.service.FirebaseStorageService;
 import com.elice.iliceworksbe.team.entity.*;
 import com.elice.iliceworksbe.team.repository.*;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,14 +43,17 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final TeamRepository teamRepository;
     private final EmployeeRepository employeeRepository;
+    private final PositionRepository positionRepository;
+    private final JobTitleRepository jobTitleRepository;
+    private final UserTypeRepository userTypeRepository;
+    private final AuthTokenRepository authTokenRepository;
 
     private final FirebaseStorageService firebaseStorageService;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final RedisDAO redisDAO;
-    private final PositionRepository positionRepository;
-    private final JobTitleRepository jobTitleRepository;
-    private final UserTypeRepository userTypeRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+
 
     @Override
     public UserDetails loadUserByUsername(String accountId) throws UsernameNotFoundException {
@@ -216,5 +224,44 @@ public class AuthServiceImpl implements AuthService {
         // 5. 해당 user 정보 변경
         memberUser.patchUsername(patchProfileRequestDto.username());
         employee.patchProfile(patchProfileRequestDto, patchedPosition, patchedJobTitle, patchedUserType);
+    }
+
+    @Override
+    @Transactional
+    public void logout(Long userId, HttpServletRequest request, HttpServletResponse response) {
+        // 1. AccessToken 블랙리스트 등록
+        invalidateAccessToken(request);
+
+        // 2. RefreshToken AuthToken 테이블에서 삭제
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies != null) {
+            String refreshToken = null;
+            for (Cookie cookie : cookies) {
+                if ("refreshToken".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
+                    break;
+                }
+            }
+            if (refreshToken != null) {
+                authTokenRepository.deleteByRefreshToken(refreshToken);
+            }
+        }
+
+        // 3. RefreshToken 쿠키 제거
+        invalidateRefreshToken(response);
+    }
+
+    private void invalidateAccessToken(HttpServletRequest request) {
+        String accessToken = jwtTokenProvider.resolveAccessToken(request);
+        redisDAO.setValues(accessToken, "logout", jwtTokenProvider.getAccessTokenExpiration());
+    }
+
+    private static void invalidateRefreshToken(HttpServletResponse response) {
+        Cookie refreshTokenCookie = new Cookie("refreshToken", null);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0); // 즉시 만료
+        response.addCookie(refreshTokenCookie); // 클라이언트에 삭제 요청
     }
 }

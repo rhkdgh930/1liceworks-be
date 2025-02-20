@@ -8,6 +8,8 @@ import com.elice.iliceworksbe.common.exception.BaseResponse;
 import com.elice.iliceworksbe.common.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,13 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
+
+    @Operation(summary = "로그아웃",description = "refreshToken을 제거하고, accessToken을 블랙리스트로 관리합니다.")
+    @PostMapping("/logout")
+    public BaseResponse<Void> logout(@AuthenticationPrincipal UserDetailsImpl userDetails, HttpServletRequest request, HttpServletResponse response) {
+        authService.logout(userDetails.getUserId(), request, response);
+        return new BaseResponse<>(ErrorCode.NO_CONTENT);
+    }
 
     @Operation(summary = "일반 이메일 로그인 요청 (AT X)", security = {}, description = "일반 이메일 로그인을 합니다.")
     @PostMapping("/login")
