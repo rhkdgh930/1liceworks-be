@@ -47,6 +47,8 @@ public enum ErrorCode {
     EVENT_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "일정을 찾을 수 없습니다."),
     JOB_TITLE_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "일치하는 직책이 없습니다."),
 
+    ROLE_PERMISSION_DENIED(false, HttpStatus.FORBIDDEN.value(), "해당 작업에 대한 권한이 없습니다."),
+    EMPLOYEE_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "일치하는 직원이 없습니다."),
     /**
      * 500 :  Database, Server 오류
      */
