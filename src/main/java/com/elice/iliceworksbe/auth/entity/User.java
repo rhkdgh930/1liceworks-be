@@ -56,4 +56,8 @@ public class User extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
+
+    public void updateUserName(String username) {
+        this.username = username;
+    }
 }
