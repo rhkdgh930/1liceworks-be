@@ -5,6 +5,7 @@ import com.elice.iliceworksbe.common.exception.BaseResponse;
 import com.elice.iliceworksbe.team.dto.team.*;
 import com.elice.iliceworksbe.team.service.TeamService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,7 @@ public class TeamController {
 
     private final TeamService teamService;
 
+    @PreAuthorize("hasAuthority('LEADER')")
     @PostMapping("/member")
     public BaseResponse<TeamMemberResponseDto> postMember(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -23,6 +25,7 @@ public class TeamController {
         return new BaseResponse<>(teamMemberResponseDto);
     }
 
+    @PreAuthorize("hasAuthority('LEADER')")
     @PatchMapping("/member/{memberId}")
     public BaseResponse<TeamMemberDetailResponseDto> patchMember(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -32,6 +35,7 @@ public class TeamController {
         return new BaseResponse<>(teamMemberDetailResponseDto);
     }
 
+    @PreAuthorize("hasAuthority('LEADER')")
     @PatchMapping("/{teamId}")
     public BaseResponse<TeamResponseDto> patchTeam(
             @AuthenticationPrincipal UserDetailsImpl userDetails,

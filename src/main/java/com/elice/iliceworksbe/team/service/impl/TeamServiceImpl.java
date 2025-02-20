@@ -41,10 +41,6 @@ public class TeamServiceImpl implements TeamService {
         User teamLeader = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
 
-        if (teamLeader.getRole() != Role.LEADER) {
-            throw new BaseException(ErrorCode.ROLE_PERMISSION_DENIED);
-        }
-
         if (userRepository.existsByAccountId(teamMemberRequestDto.accountId())){
             throw new BaseException(ErrorCode.DUPLICATED_ACCOUNTID);
         }
@@ -81,8 +77,6 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public TeamMemberDetailResponseDto updateMemberInfo(Long userId, Long memberId, TeamMemberInfoUpdateDto teamMemberInfoUpdateDto) {
 
-        checkUserRole(userId);
-
         User teamMember = userRepository.findById(memberId)
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
 
@@ -110,7 +104,6 @@ public class TeamServiceImpl implements TeamService {
     @Override
     public TeamResponseDto updateTeamInfo(Long userId, Long teamId, TeamInfoUpdateDto teamInfoUpdateDto) {
 
-        checkUserRole(userId);
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new BaseException(ErrorCode.TEAM_NOT_FOUND));
@@ -118,15 +111,5 @@ public class TeamServiceImpl implements TeamService {
         team.updateTeamInfo(teamInfoUpdateDto);
         return TeamResponseDto.from(team);
     }
-
-    private void checkUserRole(Long userId) {
-        User teamLeader = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
-
-        if (teamLeader.getRole() != Role.LEADER) {
-            throw new BaseException(ErrorCode.ROLE_PERMISSION_DENIED);
-        }
-    }
-
 
 }
