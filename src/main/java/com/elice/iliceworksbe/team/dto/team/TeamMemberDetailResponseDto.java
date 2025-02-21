@@ -12,17 +12,15 @@ public record TeamMemberDetailResponseDto(
         String accountId,
         String privateEmail,
         String phone,
-        String jobTitleName,
-        String positionName,
-        String userTypeName,
+        String jobTitle,
+        String position,
+        String userType,
         String responsibility,
         String employeeNumber,
         String hireDate
 
 ) {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy.MM.dd.");
-
-
 
     public static TeamMemberDetailResponseDto of(User user, Employee employee) {
         String hireDate = (employee.getHireDate() != null) ? employee.getHireDate().format(DATE_FORMATTER) : null;
@@ -32,9 +30,9 @@ public record TeamMemberDetailResponseDto(
                 .accountId(user.getAccountId())
                 .privateEmail(user.getPrivateEmail())
                 .phone(user.getPhone())
-                .jobTitleName(employee.getJobTitle().getName())
-                .positionName(employee.getPosition().getName())
-                .userTypeName(employee.getUserType().getName())
+                .jobTitle(employee.getJobTitle().getName())
+                .position(employee.getPosition().getName())
+                .userType(employee.getUserType().getName())
                 .responsibility(employee.getResponsibility())
                 .employeeNumber(employee.getEmployeeNumber())
                 .hireDate(hireDate)

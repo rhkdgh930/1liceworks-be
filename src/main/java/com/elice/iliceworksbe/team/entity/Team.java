@@ -46,7 +46,8 @@ public class Team extends BaseEntity {
     private Scale scale;
 
     public void updateTeamInfo(TeamInfoUpdateDto teamInfoUpdateDto) {
-        this.teamName = teamInfoUpdateDto.teamName();
-        this.domainName = teamInfoUpdateDto.domainName();
+        if (teamInfoUpdateDto.teamName() != null) {
+            this.teamName = teamInfoUpdateDto.teamName();
+        }
     }
 }
