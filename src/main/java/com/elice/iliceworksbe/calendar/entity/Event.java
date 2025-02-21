@@ -63,6 +63,7 @@ public class Event extends BaseEntity{
     public static Event of(PostTeamEventRequestDto postTeamEventRequestDto, Calendar calendar){
 
         // 3-0. 만약 종일에 표시돼있다면 시작 시각을 해당날짜 00시 00분 00초, 끝 시각을 해당날짜 23시 59분 59초로 설정
+        // 팀 일정의 공개범위설정(privacy, availability)는 항상 PUBLIC, BUSY임
         if (!postTeamEventRequestDto.isAllDay()) {
             // 3-1. 일정에 대한 유효성 검사 (일정 끝 시간이 일정 시작 시간보다 앞선지 확인)
             if (postTeamEventRequestDto.dtStartTime().isAfter(postTeamEventRequestDto.dtEndTime())){
@@ -75,8 +76,8 @@ public class Event extends BaseEntity{
                     .dtStartTime(postTeamEventRequestDto.dtStartTime())
                     .dtEndTime(postTeamEventRequestDto.dtEndTime())
                     .isAllDay(postTeamEventRequestDto.isAllDay())
-                    .privacy(postTeamEventRequestDto.privacyType())
-                    .availability(postTeamEventRequestDto.availability())
+                    .privacy(PrivacyType.PUBLIC)
+                    .availability(Availability.BUSY)
                     .location(postTeamEventRequestDto.location())
                     .calendar(calendar)
                     .build();
@@ -88,8 +89,8 @@ public class Event extends BaseEntity{
                 .dtStartTime(postTeamEventRequestDto.dtStartTime().toLocalDate().atStartOfDay())
                 .dtEndTime(postTeamEventRequestDto.dtEndTime().toLocalDate().atTime(23, 59, 59))
                 .isAllDay(postTeamEventRequestDto.isAllDay())
-                .privacy(postTeamEventRequestDto.privacyType())
-                .availability(postTeamEventRequestDto.availability())
+                .privacy(PrivacyType.PUBLIC)
+                .availability(Availability.BUSY)
                 .location(postTeamEventRequestDto.location())
                 .calendar(calendar)
                 .build();
