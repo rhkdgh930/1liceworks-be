@@ -10,7 +10,9 @@ import com.elice.iliceworksbe.team.dto.team.*;
 import com.elice.iliceworksbe.team.entity.*;
 import com.elice.iliceworksbe.team.repository.*;
 import com.elice.iliceworksbe.team.service.TeamService;
+import com.elice.iliceworksbe.team.utils.PasswordGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,10 +29,9 @@ public class TeamServiceImpl implements TeamService {
     private final JobTitleRepository jobTitleRepository;
     private final UserTypeRepository userTypeRepository;
 
+    private final PasswordEncoder passwordEncoder;
 
-    /**
-     * TODO 비밀번호 자동 생성 기능 붙이기
-     */
+
     @Transactional
     @Override
     public TeamMemberResponseDto postMember(Long userId, TeamMemberRequestDto teamMemberRequestDto) {
@@ -41,10 +42,12 @@ public class TeamServiceImpl implements TeamService {
             throw new BaseException(ErrorCode.DUPLICATED_ACCOUNTID);
         }
 
+        String generatedPassword = PasswordGenerator.generatePassword();
+
         User member = User.builder()
                 .accountId(teamMemberRequestDto.accountId())
                 .username(teamMemberRequestDto.userName())
-                .password(teamMemberRequestDto.password())
+                .password(passwordEncoder.encode(generatedPassword))
                 .isTeamCreated(true)
                 .role(Role.MEMBER)
                 .status(Status.ACTIVE)
@@ -71,7 +74,7 @@ public class TeamServiceImpl implements TeamService {
 
         employeeRepository.save(employee);
 
-        return TeamMemberResponseDto.from(member);
+        return TeamMemberResponseDto.from(member, generatedPassword);
     }
 
     @Transactional
@@ -109,11 +112,17 @@ public class TeamServiceImpl implements TeamService {
 
     @Transactional
     @Override
-    public TeamResponseDto patchTeamInfo(Long teamId, TeamInfoUpdateDto teamInfoUpdateDto) {
-
+    public TeamResponseDto patchTeamInfo(Long leaderUserId, Long teamId, TeamInfoUpdateDto teamInfoUpdateDto) {
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new BaseException(ErrorCode.TEAM_NOT_FOUND));
+
+        User teamLeader = userRepository.findById(leaderUserId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
+
+        if (!teamLeader.getTeam().equals(team)) {
+            throw new BaseException(ErrorCode.WRONG_AUTHORIZATION);
+        }
 
         team.updateTeamInfo(teamInfoUpdateDto);
 

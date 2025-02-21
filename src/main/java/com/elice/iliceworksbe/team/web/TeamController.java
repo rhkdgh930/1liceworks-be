@@ -48,7 +48,7 @@ public class TeamController {
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long teamId,
             @RequestBody TeamInfoUpdateDto teamInfoUpdateDto) {
-        TeamResponseDto teamResponseDto = teamService.patchTeamInfo(teamId, teamInfoUpdateDto);
+        TeamResponseDto teamResponseDto = teamService.patchTeamInfo(userDetails.getUserId(), teamId, teamInfoUpdateDto);
         return new BaseResponse<>(teamResponseDto);
     }
 }
