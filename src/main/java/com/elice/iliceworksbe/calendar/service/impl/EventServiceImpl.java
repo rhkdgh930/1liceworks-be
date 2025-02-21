@@ -67,11 +67,19 @@ public class EventServiceImpl implements EventService {
 
         // 5. 일정 참석자 추가
         // 5-1. 일정 인원 조회
-        List<User> users = userRepository.findAllById(
-                postTeamEventRequestDto.eventParticipants().stream().map(
-                        PostTeamEventRequestDto.EventParticipantDto::userId
-                ).toList()
-        );
+        List<Long> participantIds = postTeamEventRequestDto.eventParticipants().stream()
+                .map(PostTeamEventRequestDto.EventParticipantDto::userId)
+                .toList();
+
+        List<User> users = userRepository.findAllById(participantIds);
+
+        // 5-2. 현재 사용자가 일정 참석자 리스트에 포함되어 있지 않다면 users 리스트에 추가
+        if (!participantIds.contains(userId)) {
+            User currentUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
+            users.add(currentUser);
+        }
+
         // 5-2. 일정 인원 토대로 일정 참석자 추가 (일정 참석자가 해당 팀원인지 확인하는 로직추가)
         List<EventParticipant> eventParticipants = users.stream()
                 .filter(participant -> participant.checkMyTeam(team))
