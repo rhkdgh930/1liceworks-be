@@ -1,6 +1,7 @@
 package com.elice.iliceworksbe.team.service.impl;
 
 import com.elice.iliceworksbe.auth.entity.User;
+import com.elice.iliceworksbe.auth.repository.ArchivingUserRepository;
 import com.elice.iliceworksbe.auth.repository.UserRepository;
 import com.elice.iliceworksbe.common.constant.Role;
 import com.elice.iliceworksbe.common.constant.Status;
@@ -24,6 +25,7 @@ public class TeamServiceImpl implements TeamService {
     private final UserRepository userRepository;
     private final EmployeeRepository employeeRepository;
     private final TeamRepository teamRepository;
+    private final ArchivingUserRepository archivingUserRepository;
 
     private final PositionRepository positionRepository;
     private final JobTitleRepository jobTitleRepository;
@@ -75,6 +77,36 @@ public class TeamServiceImpl implements TeamService {
         employeeRepository.save(employee);
 
         return TeamMemberResponseDto.of(member, generatedPassword);
+    }
+    @Transactional
+    @Override
+    public void deleteMember(Long leaderUserId, Long memberUserId) {
+        Team team = userRepository.findById(leaderUserId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER)).getTeam();
+
+        User memberUser = userRepository.findById(memberUserId).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
+
+        if (!memberUser.getTeam().equals(team)) {
+            throw new BaseException(ErrorCode.WRONG_AUTHORIZATION);
+        }
+        archivingUserRepository.save(memberUser.toArchivingUser());
+
+        userRepository.delete(memberUser);
+
+    }
+    @Transactional
+    @Override
+    public void pauseMember(Long leaderUserId, Long memberUserId) {
+        Team team = userRepository.findById(leaderUserId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER)).getTeam();
+
+        User memberUser = userRepository.findById(memberUserId).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
+
+        if (!memberUser.getTeam().equals(team)) {
+            throw new BaseException(ErrorCode.WRONG_AUTHORIZATION);
+        }
+
+        memberUser.setUserStatus(Status.INACTIVE);
     }
 
     @Transactional

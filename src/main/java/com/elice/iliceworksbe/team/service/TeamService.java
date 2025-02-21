@@ -4,6 +4,9 @@ import com.elice.iliceworksbe.team.dto.team.*;
 
 public interface TeamService {
     TeamMemberResponseDto postMember(Long userId, TeamMemberRequestDto teamMemberRequestDto);
-    TeamMemberDetailResponseDto patchMemberInfo(Long leaderUserId, Long memberId, TeamMemberInfoUpdateDto teamMemberInfoUpdateDto);
-    TeamResponseDto patchTeamInfo(Long leaderUserId,Long teamId, TeamInfoUpdateDto teamInfoUpdateDto);
+
+    void deleteMember(Long leaderUserId, Long memberUserId);
+    void pauseMember(Long leaderUserId, Long memberUserId);
+    TeamMemberDetailResponseDto patchMemberInfo(Long leaderUserId, Long memberUserId, TeamMemberInfoUpdateDto teamMemberInfoUpdateDto);
+    TeamResponseDto patchTeamInfo(Long leaderUserId, Long teamId, TeamInfoUpdateDto teamInfoUpdateDto);
 }

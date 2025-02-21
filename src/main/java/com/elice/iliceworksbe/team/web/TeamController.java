@@ -2,6 +2,7 @@ package com.elice.iliceworksbe.team.web;
 
 import com.elice.iliceworksbe.auth.model.UserDetailsImpl;
 import com.elice.iliceworksbe.common.exception.BaseResponse;
+import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.elice.iliceworksbe.team.dto.team.*;
 import com.elice.iliceworksbe.team.service.TeamService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,6 +29,26 @@ public class TeamController {
             @RequestBody TeamMemberRequestDto teamMemberRequestDto) {
         TeamMemberResponseDto teamMemberResponseDto = teamService.postMember(userDetails.getUserId(), teamMemberRequestDto);
         return new BaseResponse<>(teamMemberResponseDto);
+    }
+
+    @Operation(summary = "팀원 삭제", description = "팀장이 팀원을 삭제하고 아카이빙 유저 테이블에 팀원을 저장합니다.")
+    @PreAuthorize("hasAuthority('LEADER')")
+    @DeleteMapping("/member/{memberId}")
+    public BaseResponse<String> deleteMember(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long memberId) {
+        teamService.deleteMember(userDetails.getUserId(), memberId);
+        return new BaseResponse<>(ErrorCode.NO_CONTENT);
+    }
+
+    @Operation(summary = "팀원 상태 일시정지", description = "팀장이 팀원의 상태를 일시정지로 변경합니다.")
+    @PreAuthorize("hasAuthority('LEADER')")
+    @PatchMapping("/member/{memberId}/pause")
+    public BaseResponse<String> pauseMember(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long memberId) {
+        teamService.pauseMember(userDetails.getUserId(), memberId);
+        return new BaseResponse<>(ErrorCode.NO_CONTENT);
     }
 
     @Operation(summary = "팀원 수정", description = "팀장이 팀원 정보를 수정합니다.")
