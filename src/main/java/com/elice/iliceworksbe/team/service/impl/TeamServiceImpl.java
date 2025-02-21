@@ -3,6 +3,9 @@ package com.elice.iliceworksbe.team.service.impl;
 import com.elice.iliceworksbe.auth.entity.User;
 import com.elice.iliceworksbe.auth.repository.ArchivingUserRepository;
 import com.elice.iliceworksbe.auth.repository.UserRepository;
+import com.elice.iliceworksbe.calendar.entity.Calendar;
+import com.elice.iliceworksbe.calendar.repository.CalendarRepository;
+import com.elice.iliceworksbe.common.constant.CalendarType;
 import com.elice.iliceworksbe.common.constant.Role;
 import com.elice.iliceworksbe.common.constant.Status;
 import com.elice.iliceworksbe.common.exception.BaseException;
@@ -26,12 +29,15 @@ public class TeamServiceImpl implements TeamService {
     private final EmployeeRepository employeeRepository;
     private final TeamRepository teamRepository;
     private final ArchivingUserRepository archivingUserRepository;
+    private final CalendarRepository calendarRepository;
 
     private final PositionRepository positionRepository;
     private final JobTitleRepository jobTitleRepository;
     private final UserTypeRepository userTypeRepository;
 
     private final PasswordEncoder passwordEncoder;
+
+    private static final String CALENDAR_NAME = "님의 캘린더";
 
 
     @Transactional
@@ -63,7 +69,23 @@ public class TeamServiceImpl implements TeamService {
 
         employeeRepository.save(employee);
 
+        Calendar memberCalendar = addNewCalendar(teamMemberRequestDto, member);
+
+        calendarRepository.save(memberCalendar);
+
         return TeamMemberResponseDto.of(member, generatedPassword);
+    }
+
+    private static Calendar addNewCalendar(TeamMemberRequestDto teamMemberRequestDto, User member) {
+        return Calendar.builder()
+                .name(makeCalendarName(teamMemberRequestDto.userName()))
+                .type(CalendarType.MEMBER)
+                .typeId(member.getId())
+                .build();
+    }
+
+    private static String makeCalendarName(String userName) {
+        return userName + CALENDAR_NAME;
     }
 
     private static Employee addNewEmployee(User member, UserType userType, Position position, JobTitle jobTitle) {
