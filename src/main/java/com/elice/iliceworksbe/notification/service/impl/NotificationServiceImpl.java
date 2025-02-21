@@ -43,6 +43,9 @@ public class NotificationServiceImpl implements NotificationService {
         SseEmitter emitter = new SseEmitter(30 * 60 * 1000L); // 30분 유지
         configureEmitter(userId, emitter);
         emitters.put(userId, emitter);
+
+        //미전송 알림 처리
+        sendUnsentNotifications(userId, emitter);
         return emitter;
     }
 
@@ -71,6 +74,27 @@ public class NotificationServiceImpl implements NotificationService {
             emitter.complete();
 
         });
+    }
+
+    /**
+     * 미전송 알림 처리
+     * @param userId
+     * @param emitter
+     */
+    private void sendUnsentNotifications(Long userId, SseEmitter emitter) {
+        List<Notification> unsentNotifications = notificationRepository.findUnsentNotifications(userId);
+
+        if (!unsentNotifications.isEmpty()) {
+            log.info("미전송 알림 {}건을 SSE를 통해 전송", unsentNotifications.size());
+            unsentNotifications.forEach(notification -> {
+                try {
+                    emitter.send(SseEmitter.event().name("notification").data(notification.getMessage()));
+                    updateNotificationStatus(notification.getId(), true);
+                } catch (IOException e) {
+                    log.warn("미전송 알림 발송 실패: {}", e.getMessage());
+                }
+            });
+        }
     }
 
     /**
@@ -125,6 +149,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    @Transactional
     public void updateNotificationStatus(Long notificationId, boolean isSent) {
         notificationRepository.updateIsSent(notificationId, isSent);
     }
