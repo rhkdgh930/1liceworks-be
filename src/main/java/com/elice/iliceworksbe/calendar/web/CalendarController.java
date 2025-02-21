@@ -1,6 +1,7 @@
 package com.elice.iliceworksbe.calendar.web;
 
 import com.elice.iliceworksbe.auth.model.UserDetailsImpl;
+import com.elice.iliceworksbe.calendar.dto.request.PostMyEventRequestDto;
 import com.elice.iliceworksbe.calendar.dto.request.PostTeamEventRequestDto;
 import com.elice.iliceworksbe.calendar.service.EventService;
 import com.elice.iliceworksbe.common.exception.BaseResponse;
@@ -28,6 +29,15 @@ public class CalendarController {
                                             @RequestBody PostTeamEventRequestDto postTeamEventRequestDto) {
 
         eventService.postTeamEvent(userDetails.getUserId(), calendarId, postTeamEventRequestDto);
+        return new BaseResponse<>(ErrorCode.NO_CONTENT);
+    }
+
+    @Operation(summary = "내 캘린더 일정 생성", description = "해당하는 캘린더ID에서 내 일정을 생성합니다.")
+    @PostMapping("/my-events")
+    public BaseResponse<Void> postMyEvent(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                                            @RequestBody PostMyEventRequestDto postMyEventRequestDto) {
+
+        eventService.postMyEvent(userDetails.getUserId(), postMyEventRequestDto);
         return new BaseResponse<>(ErrorCode.NO_CONTENT);
     }
 }

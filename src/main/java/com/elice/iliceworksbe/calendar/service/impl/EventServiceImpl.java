@@ -2,6 +2,7 @@ package com.elice.iliceworksbe.calendar.service.impl;
 
 import com.elice.iliceworksbe.auth.entity.User;
 import com.elice.iliceworksbe.auth.repository.UserRepository;
+import com.elice.iliceworksbe.calendar.dto.request.PostMyEventRequestDto;
 import com.elice.iliceworksbe.calendar.dto.request.PostTeamEventRequestDto;
 import com.elice.iliceworksbe.calendar.entity.Calendar;
 import com.elice.iliceworksbe.calendar.entity.Event;
@@ -60,7 +61,7 @@ public class EventServiceImpl implements EventService {
         // 4. 생성된 EventReminder 추가
         List<EventReminder> eventReminders = postTeamEventRequestDto.eventReminders()
                 .stream()
-                .map(EventReminder::from)
+                .map(eR -> EventReminder.of(eR, teamEvent))
                 .toList();
         eventReminderRepository.saveAll(eventReminders);
 
@@ -91,5 +92,32 @@ public class EventServiceImpl implements EventService {
                                         .build()
                         )
         );
+    }
+
+    @Override
+    public void postMyEvent(Long userId, PostMyEventRequestDto postMyEventRequestDto) {
+
+        // 1. 현재 유저의 캘린더 조회
+        User currentUser = userRepository.findById(userId).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
+        Calendar myCalendar = calendarRepository.findByTypeAndTypeId(CalendarType.MEMBER, userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_CALENDAR));
+
+        // 2. 해당 유저의 일정 추가
+        Event myEvent = Event.of(postMyEventRequestDto, myCalendar);
+        eventRepository.save(myEvent);
+
+        // 3. 생성된 EventReminder 추가
+        List<EventReminder> eventReminders = postMyEventRequestDto.eventReminders()
+                .stream()
+                .map(eR -> EventReminder.of(eR, myEvent))
+                .toList();
+        eventReminderRepository.saveAll(eventReminders);
+
+        // 4. 일정 참석자 추가(자신)
+        EventParticipant eventParticipant = EventParticipant.builder()
+                .user(currentUser)
+                .event(myEvent)
+                .build();
+        eventParticipantRepository.save(eventParticipant);
     }
 }

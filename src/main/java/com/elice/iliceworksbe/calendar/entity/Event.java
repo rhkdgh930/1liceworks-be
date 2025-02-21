@@ -1,5 +1,6 @@
 package com.elice.iliceworksbe.calendar.entity;
 
+import com.elice.iliceworksbe.calendar.dto.request.PostMyEventRequestDto;
 import com.elice.iliceworksbe.calendar.dto.request.PostTeamEventRequestDto;
 import com.elice.iliceworksbe.common.constant.Availability;
 import com.elice.iliceworksbe.common.constant.PrivacyType;
@@ -96,4 +97,38 @@ public class Event extends BaseEntity{
                 .build();
     }
 
+    public static Event of(PostMyEventRequestDto postMyEventRequestDto, Calendar calendar) {
+        // 3-0. 만약 종일에 표시돼있다면 시작 시각을 해당날짜 00시 00분 00초, 끝 시각을 해당날짜 23시 59분 59초로 설정
+        // 팀 일정의 공개범위설정(privacy, availability)는 항상 PUBLIC, BUSY임
+        if (!postMyEventRequestDto.isAllDay()) {
+            // 3-1. 일정에 대한 유효성 검사 (일정 끝 시간이 일정 시작 시간보다 앞선지 확인)
+            if (postMyEventRequestDto.dtStartTime().isAfter(postMyEventRequestDto.dtEndTime())){
+                throw new BaseException(ErrorCode.MUST_START_TIME_BEFORE_END_TIME);
+            }
+
+            return Event.builder()
+                    .title(postMyEventRequestDto.title())
+                    .description(postMyEventRequestDto.description())
+                    .dtStartTime(postMyEventRequestDto.dtStartTime())
+                    .dtEndTime(postMyEventRequestDto.dtEndTime())
+                    .isAllDay(postMyEventRequestDto.isAllDay())
+                    .privacy(postMyEventRequestDto.privacyType())
+                    .availability(postMyEventRequestDto.availability())
+                    .location(postMyEventRequestDto.location())
+                    .calendar(calendar)
+                    .build();
+        }
+
+        return Event.builder()
+                .title(postMyEventRequestDto.title())
+                .description(postMyEventRequestDto.description())
+                .dtStartTime(postMyEventRequestDto.dtStartTime().toLocalDate().atStartOfDay())
+                .dtEndTime(postMyEventRequestDto.dtEndTime().toLocalDate().atTime(23, 59, 59))
+                .isAllDay(postMyEventRequestDto.isAllDay())
+                .privacy(postMyEventRequestDto.privacyType())
+                .availability(postMyEventRequestDto.availability())
+                .location(postMyEventRequestDto.location())
+                .calendar(calendar)
+                .build();
+    }
 }
