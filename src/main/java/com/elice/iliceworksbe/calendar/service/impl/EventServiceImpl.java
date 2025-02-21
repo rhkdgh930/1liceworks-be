@@ -54,12 +54,6 @@ public class EventServiceImpl implements EventService {
         }
 
         // 3. 해당 팀 캘린더에 대해 일정 생성 및 추가
-        // 3-1. 일정에 대한 유효성 검사 (일정 끝 시간이 일정 시작 시간보다 앞선지 확인)
-        if (postTeamEventRequestDto.dtStartTime().isAfter(postTeamEventRequestDto.dtEndTime())){
-            throw new BaseException(ErrorCode.MUST_START_TIME_BEFORE_END_TIME);
-        }
-
-        // 3-2. 일정 저장
         Event teamEvent = Event.of(postTeamEventRequestDto, teamCalendar);
         eventRepository.save(teamEvent);
 
