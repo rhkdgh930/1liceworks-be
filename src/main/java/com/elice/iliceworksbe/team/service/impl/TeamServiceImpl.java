@@ -51,26 +51,20 @@ public class TeamServiceImpl implements TeamService {
         }
 
         String generatedPassword = PasswordGenerator.generatePassword();
-
         User member = addNewMember(teamMemberRequestDto, teamLeader, generatedPassword);
-
         userRepository.save(member);
 
         UserType userType = userTypeRepository.findByName(teamMemberRequestDto.userType())
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER_TYPE));
-
         Position position = positionRepository.findByName(teamMemberRequestDto.position())
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_POSITION));
-
         JobTitle jobTitle = jobTitleRepository.findByName(teamMemberRequestDto.jobTitle())
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_JOB_TITLE));
 
         Employee employee = addNewEmployee(member, userType, position, jobTitle);
-
         employeeRepository.save(employee);
 
         Calendar memberCalendar = addNewCalendar(teamMemberRequestDto, member);
-
         calendarRepository.save(memberCalendar);
 
         return TeamMemberResponseDto.of(member, generatedPassword);
@@ -115,15 +109,15 @@ public class TeamServiceImpl implements TeamService {
         Team team = userRepository.findById(leaderUserId)
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER)).getTeam();
 
-        User memberUser = userRepository.findById(memberUserId).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
+        User memberUser = userRepository.findById(memberUserId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
 
         if (!memberUser.getTeam().equals(team)) {
             throw new BaseException(ErrorCode.WRONG_AUTHORIZATION);
         }
+
         archivingUserRepository.save(memberUser.toArchivingUser());
-
         userRepository.delete(memberUser);
-
     }
     @Transactional
     @Override
@@ -146,20 +140,20 @@ public class TeamServiceImpl implements TeamService {
         Team team = userRepository.findById(leaderUserId)
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER)).getTeam();
 
-        User memberUser = userRepository.findById(memberUserId).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
+        User memberUser = userRepository.findById(memberUserId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
 
         if (!memberUser.getTeam().equals(team)) {
             throw new BaseException(ErrorCode.WRONG_AUTHORIZATION);
         }
 
-        Employee employee = employeeRepository.findEmployeeByUser(memberUser).orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
+        Employee employee = employeeRepository.findEmployeeByUser(memberUser)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
 
         UserType userType = userTypeRepository.findByName(teamMemberInfoUpdateDto.userType())
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER_TYPE));
-
         Position position = positionRepository.findByName(teamMemberInfoUpdateDto.position())
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_POSITION));
-
         JobTitle jobTitle = jobTitleRepository.findByName(teamMemberInfoUpdateDto.jobTitle())
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_JOB_TITLE));
 
@@ -170,7 +164,8 @@ public class TeamServiceImpl implements TeamService {
         return TeamMemberDetailResponseDto.of(memberUser, employee);
     }
 
-    private void patchEmployeeInfo(TeamMemberInfoUpdateDto teamMemberInfoUpdateDto, Employee employee, UserType userType, Position position, JobTitle jobTitle) {
+    private void patchEmployeeInfo(TeamMemberInfoUpdateDto teamMemberInfoUpdateDto,
+                                   Employee employee, UserType userType, Position position, JobTitle jobTitle) {
         employee.patchEmployeeInfo(
                 teamMemberInfoUpdateDto,
                 jobTitle,
@@ -197,5 +192,4 @@ public class TeamServiceImpl implements TeamService {
 
         return TeamResponseDto.from(team);
     }
-
 }
