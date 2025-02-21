@@ -46,15 +46,7 @@ public class TeamServiceImpl implements TeamService {
 
         String generatedPassword = PasswordGenerator.generatePassword();
 
-        User member = User.builder()
-                .accountId(teamMemberRequestDto.accountId())
-                .username(teamMemberRequestDto.userName())
-                .password(passwordEncoder.encode(generatedPassword))
-                .isTeamCreated(true)
-                .role(Role.MEMBER)
-                .status(Status.ACTIVE)
-                .team(teamLeader.getTeam())
-                .build();
+        User member = addNewMember(teamMemberRequestDto, teamLeader, generatedPassword);
 
         userRepository.save(member);
 
@@ -67,17 +59,34 @@ public class TeamServiceImpl implements TeamService {
         JobTitle jobTitle = jobTitleRepository.findByName(teamMemberRequestDto.jobTitle())
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_JOB_TITLE));
 
-        Employee employee = Employee.builder()
-                .user(member)
-                .userType(userType)
-                .position(position)
-                .jobTitle(jobTitle)
-                .build();
+        Employee employee = addNewEmployee(member, userType, position, jobTitle);
 
         employeeRepository.save(employee);
 
         return TeamMemberResponseDto.of(member, generatedPassword);
     }
+
+    private static Employee addNewEmployee(User member, UserType userType, Position position, JobTitle jobTitle) {
+        return Employee.builder()
+                .user(member)
+                .userType(userType)
+                .position(position)
+                .jobTitle(jobTitle)
+                .build();
+    }
+
+    private User addNewMember(TeamMemberRequestDto teamMemberRequestDto, User teamLeader, String generatedPassword) {
+        return User.builder()
+                .accountId(teamMemberRequestDto.accountId())
+                .username(teamMemberRequestDto.userName())
+                .password(passwordEncoder.encode(generatedPassword))
+                .isTeamCreated(true)
+                .role(Role.MEMBER)
+                .status(Status.ACTIVE)
+                .team(teamLeader.getTeam())
+                .build();
+    }
+
     @Transactional
     @Override
     public void deleteMember(Long leaderUserId, Long memberUserId) {
@@ -133,13 +142,19 @@ public class TeamServiceImpl implements TeamService {
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_JOB_TITLE));
 
         memberUser.patchUsername(teamMemberInfoUpdateDto.userName());
+
+        patchEmployeeInfo(teamMemberInfoUpdateDto, employee, userType, position, jobTitle);
+
+        return TeamMemberDetailResponseDto.of(memberUser, employee);
+    }
+
+    private static void patchEmployeeInfo(TeamMemberInfoUpdateDto teamMemberInfoUpdateDto, Employee employee, UserType userType, Position position, JobTitle jobTitle) {
         employee.patchEmployeeInfo(
                 teamMemberInfoUpdateDto,
                 jobTitle,
                 position,
                 userType
         );
-        return TeamMemberDetailResponseDto.of(memberUser, employee);
     }
 
     @Transactional
