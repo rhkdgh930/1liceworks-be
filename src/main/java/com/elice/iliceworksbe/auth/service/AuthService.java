@@ -27,4 +27,6 @@ public interface AuthService extends UserDetailsService {
     void patchMemberProfile(Long leaderUserId, Long memberUserId, PatchMemberProfileRequestDto patchProfileRequestDto);
 
     void logout(Long userId, HttpServletRequest request, HttpServletResponse response);
+
+    String refreshAccessToken(String refreshToken);
 }

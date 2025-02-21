@@ -8,6 +8,7 @@ import com.elice.iliceworksbe.auth.repository.AuthTokenRepository;
 import com.elice.iliceworksbe.auth.repository.UserRepository;
 import com.elice.iliceworksbe.auth.service.AuthService;
 import com.elice.iliceworksbe.auth.utils.JwtTokenProvider;
+import com.elice.iliceworksbe.auth.utils.RefreshTokenProvider;
 import com.elice.iliceworksbe.common.constant.Role;
 import com.elice.iliceworksbe.common.constant.Status;
 import com.elice.iliceworksbe.common.exception.BaseException;
@@ -23,6 +24,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,6 +55,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final RedisDAO redisDAO;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RefreshTokenProvider refreshTokenProvider;
 
 
     @Override
@@ -251,6 +254,21 @@ public class AuthServiceImpl implements AuthService {
         // 3. RefreshToken 쿠키 제거
         invalidateRefreshToken(response);
     }
+
+    @Override
+    @Transactional
+    public String refreshAccessToken(String refreshToken) {
+
+        User user = refreshTokenProvider.validateRefreshToken(refreshToken);
+
+        // Refresh Token 검증
+        if (user == null) {
+            throw new BaseException(ErrorCode.INVALID_JWT);
+        }
+
+        return jwtTokenProvider.generateAccessToken(user.getAccountId(), user.getId(), List.of(new SimpleGrantedAuthority(user.getRole().name())));
+    }
+
 
     private void invalidateAccessToken(HttpServletRequest request) {
         String accessToken = jwtTokenProvider.resolveAccessToken(request);

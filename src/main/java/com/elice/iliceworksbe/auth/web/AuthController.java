@@ -1,13 +1,16 @@
 package com.elice.iliceworksbe.auth.web;
 
 import com.elice.iliceworksbe.auth.dto.request.*;
+import com.elice.iliceworksbe.auth.dto.response.AccessTokenResponseDto;
 import com.elice.iliceworksbe.auth.dto.response.GetProfileResponseDto;
 import com.elice.iliceworksbe.auth.model.UserDetailsImpl;
 import com.elice.iliceworksbe.auth.service.AuthService;
+import com.elice.iliceworksbe.common.exception.BaseException;
 import com.elice.iliceworksbe.common.exception.BaseResponse;
 import com.elice.iliceworksbe.common.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -29,6 +32,35 @@ import java.util.List;
 public class AuthController {
 
     private final AuthService authService;
+
+    @Operation(summary = "RefreshToken을 통한 AccessToken 발급 요청 (AT X, RT O)", security = {},description = "RefreshToken을 통한 AccessToken 발급 요청합니다.")
+    @GetMapping("/refresh-token")
+    public BaseResponse<?> refreshAccessToken(HttpServletRequest request) {
+
+        // Cookie에서 RefreshToken 추출
+        Cookie[] cookies = request.getCookies();
+
+        if (cookies == null) {
+            throw new BaseException(ErrorCode.INVALID_JWT);
+        }
+
+        String refreshToken = null;
+        for (Cookie cookie : cookies) {
+            if ("refreshToken".equals(cookie.getName())) {
+                refreshToken = cookie.getValue();
+                break;
+            }
+        }
+
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new BaseException(ErrorCode.INVALID_JWT);
+        }
+
+        // Access Token 발급
+        String newAccessToken = authService.refreshAccessToken(refreshToken);
+
+        return new BaseResponse<>(new AccessTokenResponseDto(newAccessToken));
+    }
 
     @Operation(summary = "로그아웃",description = "refreshToken을 제거하고, accessToken을 블랙리스트로 관리합니다.")
     @PostMapping("/logout")
