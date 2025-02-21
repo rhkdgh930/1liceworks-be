@@ -41,6 +41,7 @@ public enum ErrorCode {
     INVALID_USER_JWT(false,HttpStatus.FORBIDDEN.value(),"권한이 없는 유저의 접근입니다."),
     NOT_FIND_USER(false,HttpStatus.NOT_FOUND.value(),"일치하는 유저가 없습니다."),
     NOT_FIND_EMPLOYEE(false,HttpStatus.NOT_FOUND.value(),"일치하는 직원이 없습니다."),
+    MATCH_BEFORE_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "새로운 비밀번호가 현재 비밀번호와 동일합니다."),
 
     NOT_FIND_POSITION(false,HttpStatus.NOT_FOUND.value(),"일치하는 직급이 없습니다."),
     NOT_FIND_JOB_TITLE(false,HttpStatus.NOT_FOUND.value(),"일치하는 직책이 없습니다."),
