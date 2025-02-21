@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface NotificationService {
     SseEmitter createEmitter(Long userId);
+    void disconnect(Long userId);
     void sendNotification(NotificationRequestDto notificationRequestDto);
     List<NotificationResponseDto> getNotifications(Long userId);
 }

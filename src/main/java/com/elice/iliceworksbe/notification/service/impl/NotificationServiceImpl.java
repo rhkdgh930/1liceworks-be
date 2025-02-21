@@ -6,7 +6,6 @@ import com.elice.iliceworksbe.auth.repository.UserRepository;
 import com.elice.iliceworksbe.common.exception.BaseException;
 import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.elice.iliceworksbe.notification.dto.request.NotificationRequestDto;
-import com.elice.iliceworksbe.notification.dto.response.EventReminderResponseDto;
 import com.elice.iliceworksbe.notification.dto.response.NotificationResponseDto;
 import com.elice.iliceworksbe.notification.entity.Notification;
 import com.elice.iliceworksbe.notification.repository.NotificationRepository;
@@ -116,6 +115,19 @@ public class NotificationServiceImpl implements NotificationService {
                 emitters.remove(requestDto.userId(), emitter);
             }
         }
+    }
+
+    /**
+     * sse 연결 종료
+     * @param userId
+     */
+    @Override
+    public void disconnect(Long userId) {
+        SseEmitter emitter = emitters.remove(userId);
+        if (emitter != null) {
+            emitter.complete();  // 연결 종료
+        }
+
     }
 
     /**
