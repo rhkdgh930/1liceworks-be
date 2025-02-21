@@ -37,8 +37,6 @@ public class TeamServiceImpl implements TeamService {
 
     private final PasswordEncoder passwordEncoder;
 
-    private static final String CALENDAR_NAME = "님의 캘린더";
-
 
     @Transactional
     @Override
@@ -72,14 +70,14 @@ public class TeamServiceImpl implements TeamService {
 
     private Calendar addNewCalendar(TeamMemberRequestDto teamMemberRequestDto, User member) {
         return Calendar.builder()
-                .name(makeCalendarName(teamMemberRequestDto.userName()))
+                .name(makeCalendarName(teamMemberRequestDto))
                 .type(CalendarType.MEMBER)
                 .typeId(member.getId())
                 .build();
     }
 
-    private String makeCalendarName(String userName) {
-        return userName + CALENDAR_NAME;
+    private String makeCalendarName(TeamMemberRequestDto dto) {
+        return dto.userName() + " / " + dto.position();
     }
 
     private Employee addNewEmployee(User member, UserType userType, Position position, JobTitle jobTitle) {
