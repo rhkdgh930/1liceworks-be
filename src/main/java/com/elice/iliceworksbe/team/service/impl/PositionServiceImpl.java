@@ -54,6 +54,10 @@ public class PositionServiceImpl implements PositionService {
         Position findedPosition = positionRepository.findById(positionId)
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_POSITION));
 
+        if (positionRepository.existsByName(positionUpdateDto.name())) {
+            throw new BaseException(ErrorCode.DUPLICATED_POSITION_NAME);
+        }
+
         findedPosition.update(positionUpdateDto);
 
         Position updatedPosition = positionRepository.save(findedPosition);
@@ -63,7 +67,9 @@ public class PositionServiceImpl implements PositionService {
     @Transactional
     @Override
     public void deletePosition(Long positionId) {
-        positionRepository.deleteById(positionId);
+        Position findedPosition = positionRepository.findById(positionId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_POSITION));
+        positionRepository.deleteById(findedPosition.getId());
     }
 
 }

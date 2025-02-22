@@ -54,6 +54,10 @@ public class UserTypeServiceImpl implements UserTypeService{
         UserType findedUserType = userTypeRepository.findById(userTypeId)
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER_TYPE));
 
+        if (userTypeRepository.existsByName(userTypeUpdateDto.name())) {
+            throw new BaseException(ErrorCode.DUPLICATED_USER_TYPE_NAME);
+        }
+
         findedUserType.update(userTypeUpdateDto);
 
         UserType updatedUserType = userTypeRepository.save(findedUserType);
@@ -63,7 +67,9 @@ public class UserTypeServiceImpl implements UserTypeService{
     @Transactional
     @Override
     public void deleteUserType(Long userTypeId) {
-        userTypeRepository.deleteById(userTypeId);
+        UserType findedUserType = userTypeRepository.findById(userTypeId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER_TYPE));
+        userTypeRepository.deleteById(findedUserType.getId());
     }
 
 }
