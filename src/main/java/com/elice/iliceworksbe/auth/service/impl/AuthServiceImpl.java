@@ -16,6 +16,7 @@ import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.elice.iliceworksbe.common.model.RedisDAO;
 import com.elice.iliceworksbe.common.service.EmailService;
 import com.elice.iliceworksbe.common.service.FirebaseStorageService;
+import com.elice.iliceworksbe.notification.service.NotificationService;
 import com.elice.iliceworksbe.team.entity.*;
 import com.elice.iliceworksbe.team.repository.*;
 import jakarta.servlet.http.Cookie;
@@ -51,6 +52,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserTypeRepository userTypeRepository;
     private final AuthTokenRepository authTokenRepository;
 
+    private final NotificationService notificationService;
     private final FirebaseStorageService firebaseStorageService;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
@@ -278,6 +280,9 @@ public class AuthServiceImpl implements AuthService {
 
         // 3. RefreshToken 쿠키 제거
         invalidateRefreshToken(response);
+        notificationService.disconnect(userId);
+
+        log.info("User {} 로그아웃 및 SSE 연결 해제 완료", userId);
     }
 
     @Override
