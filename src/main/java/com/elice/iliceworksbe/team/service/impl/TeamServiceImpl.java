@@ -52,12 +52,9 @@ public class TeamServiceImpl implements TeamService {
         User member = addNewMember(teamMemberRequestDto, teamLeader, generatedPassword);
         userRepository.save(member);
 
-        UserType userType = userTypeRepository.findByName(teamMemberRequestDto.userType())
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER_TYPE));
-        Position position = positionRepository.findByName(teamMemberRequestDto.position())
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_POSITION));
-        JobTitle jobTitle = jobTitleRepository.findByName(teamMemberRequestDto.jobTitle())
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_JOB_TITLE));
+        UserType userType = findUserTypeByName(teamMemberRequestDto.userType());
+        Position position = findPositionByName(teamMemberRequestDto.position());
+        JobTitle jobTitle = findJobTitleByName(teamMemberRequestDto.jobTitle());
 
         Employee employee = addNewEmployee(member, userType, position, jobTitle);
         employeeRepository.save(employee);
@@ -110,13 +107,12 @@ public class TeamServiceImpl implements TeamService {
         User memberUser = userRepository.findById(memberUserId)
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER));
 
-        if (!memberUser.getTeam().equals(team)) {
-            throw new BaseException(ErrorCode.INVALID_AUTHORIZATION);
-        }
+        validateMemberBelongsToTeam(team, memberUser);
 
         archivingUserRepository.save(memberUser.toArchivingUser());
         userRepository.delete(memberUser);
     }
+
     @Transactional
     @Override
     public void pauseMember(Long leaderUserId, Long memberUserId) {
@@ -125,9 +121,7 @@ public class TeamServiceImpl implements TeamService {
 
         User memberUser = userRepository.findById(memberUserId).orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER));
 
-        if (!memberUser.getTeam().equals(team)) {
-            throw new BaseException(ErrorCode.INVALID_AUTHORIZATION);
-        }
+        validateMemberBelongsToTeam(team, memberUser);
 
         memberUser.setUserStatus(Status.INACTIVE);
     }
@@ -141,19 +135,14 @@ public class TeamServiceImpl implements TeamService {
         User memberUser = userRepository.findById(memberUserId)
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER));
 
-        if (!memberUser.getTeam().equals(team)) {
-            throw new BaseException(ErrorCode.INVALID_AUTHORIZATION);
-        }
+        validateMemberBelongsToTeam(team, memberUser);
 
         Employee employee = employeeRepository.findEmployeeByUser(memberUser)
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER));
 
-        UserType userType = userTypeRepository.findByName(teamMemberInfoUpdateDto.userType())
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER_TYPE));
-        Position position = positionRepository.findByName(teamMemberInfoUpdateDto.position())
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_POSITION));
-        JobTitle jobTitle = jobTitleRepository.findByName(teamMemberInfoUpdateDto.jobTitle())
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_JOB_TITLE));
+        UserType userType = findUserTypeByName(teamMemberInfoUpdateDto.userType());
+        Position position = findPositionByName(teamMemberInfoUpdateDto.position());
+        JobTitle jobTitle = findJobTitleByName(teamMemberInfoUpdateDto.jobTitle());
 
         memberUser.patchUsername(teamMemberInfoUpdateDto.userName());
 
@@ -182,12 +171,31 @@ public class TeamServiceImpl implements TeamService {
         User teamLeader = userRepository.findById(leaderUserId)
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER));
 
-        if (!teamLeader.getTeam().equals(team)) {
-            throw new BaseException(ErrorCode.INVALID_AUTHORIZATION);
-        }
+        validateMemberBelongsToTeam(team, teamLeader);
 
         team.updateTeamInfo(teamInfoUpdateDto);
 
         return TeamResponseDto.from(team);
+    }
+
+    private static void validateMemberBelongsToTeam(Team team, User memberUser) {
+        if (!memberUser.getTeam().equals(team)) {
+            throw new BaseException(ErrorCode.INVALID_AUTHORIZATION);
+        }
+    }
+
+    private UserType findUserTypeByName(String name) {
+        return userTypeRepository.findByName(name.trim())
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER_TYPE));
+    }
+
+    private Position findPositionByName(String name) {
+        return positionRepository.findByName(name.trim())
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_POSITION));
+    }
+
+    private JobTitle findJobTitleByName(String name) {
+        return jobTitleRepository.findByName(name.trim())
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_JOB_TITLE));
     }
 }
