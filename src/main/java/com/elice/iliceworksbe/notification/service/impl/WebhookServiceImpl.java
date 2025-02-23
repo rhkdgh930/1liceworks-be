@@ -24,6 +24,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Slf4j
@@ -40,6 +41,7 @@ public class WebhookServiceImpl implements WebhookService {
      * @param requestDto
      * @return
      */
+    @Transactional
     @Override
     public WebhookResponseDto postWebhook(Long userId, WebhookRequestDto requestDto) {
 
@@ -71,6 +73,7 @@ public class WebhookServiceImpl implements WebhookService {
      * @param webhookMessageDto
      * @return
      */
+    @Transactional
     @Override
     public boolean sendWebhookMessage(Long calendarId, WebhookMessageDto webhookMessageDto) {
 
@@ -116,6 +119,7 @@ public class WebhookServiceImpl implements WebhookService {
         return WebhookResponseDto.from(findedWebhook);
     }
 
+    @Transactional
     @Override
     public WebhookResponseDto patchWebhook(Long webhookId, WebhookUpdateDto webhookUpdateDto) {
         Webhook findedWebhook = webhookRepository.findById(webhookId)
@@ -126,4 +130,9 @@ public class WebhookServiceImpl implements WebhookService {
         return WebhookResponseDto.from(updatedWebhook);
     }
 
+    @Transactional
+    @Override
+    public void deleteWebhook(Long webhookId) {
+        webhookRepository.deleteById(webhookId);
+    }
 }

@@ -2,6 +2,7 @@ package com.elice.iliceworksbe.notification.web;
 
 import com.elice.iliceworksbe.auth.model.UserDetailsImpl;
 import com.elice.iliceworksbe.common.exception.BaseResponse;
+import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.elice.iliceworksbe.notification.dto.request.WebhookRequestDto;
 import com.elice.iliceworksbe.notification.dto.request.WebhookUpdateDto;
 import com.elice.iliceworksbe.notification.dto.response.NotificationResponseDto;
@@ -76,6 +77,17 @@ public class NotificationController {
             @Valid @RequestBody WebhookUpdateDto webhookUpdateDto) {
         WebhookResponseDto patchResponseDto = webhookService.patchWebhook(webhookId, webhookUpdateDto);
         return new BaseResponse<>(patchResponseDto);
+    }
+
+    @Operation(summary = "웹훅 삭제", description = "웹훅을 삭제합니다.")
+    @PreAuthorize("hasAuthority('LEADER')")
+    @DeleteMapping("/webhook/{webhookId}")
+    public BaseResponse<String> deleteWebhook(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long webhookId
+    ){
+        webhookService.deleteWebhook(webhookId);
+        return new BaseResponse<>(ErrorCode.NO_CONTENT);
     }
 
 }

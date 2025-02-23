@@ -10,4 +10,5 @@ public interface WebhookService {
     boolean sendWebhookMessage(Long calendarId, WebhookMessageDto webhookMessageDto);
     WebhookResponseDto getWebhook(Long webhookId);
     WebhookResponseDto patchWebhook(Long webhookId, WebhookUpdateDto webhookUpdateDto);
+    void deleteWebhook(Long webhookId);
 }
