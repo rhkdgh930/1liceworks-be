@@ -7,6 +7,8 @@ import com.elice.iliceworksbe.notification.dto.response.NotificationResponseDto;
 import com.elice.iliceworksbe.notification.dto.response.WebhookResponseDto;
 import com.elice.iliceworksbe.notification.service.NotificationService;
 import com.elice.iliceworksbe.notification.service.WebhookService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -21,10 +23,12 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api/notification")
+@Tag(name = "Notification", description = "알림 관련 API 입니다.")
 public class NotificationController {
     private final NotificationService notificationService;
     private final WebhookService webhookService;
 
+    @Operation(summary = "SSE 구독 요청", description = "SSE 구독을 요청합니다.")
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         Long userId = userDetails.getUserId();
@@ -32,6 +36,7 @@ public class NotificationController {
         return notificationService.createEmitter(userId); // SseEmitter를 반환
     }
 
+    @Operation(summary = "알림 조회", description = "알림을 조회합니다.")
     @GetMapping
     public BaseResponse<List<NotificationResponseDto>> getNotifications(
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -41,10 +46,12 @@ public class NotificationController {
 
     /**
      * 웹훅 등록
+     *
      * @param userDetails
      * @param requestDto
      * @return
      */
+    @Operation(summary = "웹훅 등록", description = "웹훅을 등록합니다.")
     @PreAuthorize("hasAuthority('LEADER')")
     @PostMapping("/webhook")
     public BaseResponse<WebhookResponseDto> postWebhook(
