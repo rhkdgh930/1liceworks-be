@@ -8,6 +8,7 @@ import com.elice.iliceworksbe.common.exception.BaseException;
 import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.elice.iliceworksbe.notification.dto.request.WebhookMessageDto;
 import com.elice.iliceworksbe.notification.dto.request.WebhookRequestDto;
+import com.elice.iliceworksbe.notification.dto.request.WebhookUpdateDto;
 import com.elice.iliceworksbe.notification.dto.response.WebhookResponseDto;
 import com.elice.iliceworksbe.notification.entity.Webhook;
 import com.elice.iliceworksbe.notification.repository.WebhookRepository;
@@ -106,6 +107,13 @@ public class WebhookServiceImpl implements WebhookService {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public WebhookResponseDto getWebhook(Long webhookId) {
+        Webhook findedWebhook = webhookRepository.findById(webhookId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_WEBHOOK));
+        return WebhookResponseDto.from(findedWebhook);
     }
 
 }

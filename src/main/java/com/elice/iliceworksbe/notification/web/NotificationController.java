@@ -3,6 +3,7 @@ package com.elice.iliceworksbe.notification.web;
 import com.elice.iliceworksbe.auth.model.UserDetailsImpl;
 import com.elice.iliceworksbe.common.exception.BaseResponse;
 import com.elice.iliceworksbe.notification.dto.request.WebhookRequestDto;
+import com.elice.iliceworksbe.notification.dto.request.WebhookUpdateDto;
 import com.elice.iliceworksbe.notification.dto.response.NotificationResponseDto;
 import com.elice.iliceworksbe.notification.dto.response.WebhookResponseDto;
 import com.elice.iliceworksbe.notification.service.NotificationService;
@@ -55,4 +56,17 @@ public class NotificationController {
         WebhookResponseDto postResponseDto = webhookService.postWebhook(userId, requestDto);
         return new BaseResponse<>(postResponseDto);
     }
+
+    @Operation(summary = "웹훅 조회", description = "웹훅을 조회합니다.")
+    @PreAuthorize("hasAuthority('LEADER')")
+    @GetMapping("/webhook/{webhookId}")
+    public BaseResponse<WebhookResponseDto> getWebhook(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long webhookId) {
+        WebhookResponseDto getResponseDto = webhookService.getWebhook(webhookId);
+        return new BaseResponse<>(getResponseDto);
+    }
+
+
+
 }
