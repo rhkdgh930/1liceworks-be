@@ -116,4 +116,14 @@ public class WebhookServiceImpl implements WebhookService {
         return WebhookResponseDto.from(findedWebhook);
     }
 
+    @Override
+    public WebhookResponseDto patchWebhook(Long webhookId, WebhookUpdateDto webhookUpdateDto) {
+        Webhook findedWebhook = webhookRepository.findById(webhookId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_WEBHOOK));
+        findedWebhook.update(webhookUpdateDto);
+
+        Webhook updatedWebhook = webhookRepository.save(findedWebhook);
+        return WebhookResponseDto.from(updatedWebhook);
+    }
+
 }

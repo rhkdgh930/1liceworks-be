@@ -67,6 +67,15 @@ public class NotificationController {
         return new BaseResponse<>(getResponseDto);
     }
 
-
+    @Operation(summary = "웹훅 수정", description = "웹훅을 수정합니다.")
+    @PreAuthorize("hasAuthority('LEADER')")
+    @PatchMapping("/webhook/{webhookId}")
+    public BaseResponse<WebhookResponseDto> patchWebhook(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long webhookId,
+            @Valid @RequestBody WebhookUpdateDto webhookUpdateDto) {
+        WebhookResponseDto patchResponseDto = webhookService.patchWebhook(webhookId, webhookUpdateDto);
+        return new BaseResponse<>(patchResponseDto);
+    }
 
 }
