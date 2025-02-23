@@ -51,6 +51,7 @@ public enum ErrorCode {
     NOT_FOUND_CALENDAR(false, HttpStatus.NOT_FOUND.value(), "캘린더를 찾을 수 없습니다."),
     NOT_FOUND_TEAM(false, HttpStatus.NOT_FOUND.value(), "팀을 찾을 수 없습니다."),
     EVENT_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "일정을 찾을 수 없습니다."),
+    NOT_FOUND_WEBHOOK(false, HttpStatus.NOT_FOUND.value(), "웹훅을 찾을 수 없습니다."),
 
     IMAGE_DELETE_FAILED(false, HttpStatus.BAD_REQUEST.value(), "이미지 삭제에 실패했습니다."),
     IMAGE_UPLOAD_FAILED(false, HttpStatus.BAD_REQUEST.value(), "이미지 업로드에 실패했습니다."),
