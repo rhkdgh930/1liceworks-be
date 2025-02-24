@@ -6,7 +6,6 @@ import com.elice.iliceworksbe.auth.repository.UserRepository;
 import com.elice.iliceworksbe.common.exception.BaseException;
 import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.elice.iliceworksbe.notification.dto.request.NotificationRequestDto;
-import com.elice.iliceworksbe.notification.dto.response.EventReminderResponseDto;
 import com.elice.iliceworksbe.notification.dto.response.NotificationResponseDto;
 import com.elice.iliceworksbe.notification.entity.Notification;
 import com.elice.iliceworksbe.notification.repository.NotificationRepository;
@@ -44,6 +43,9 @@ public class NotificationServiceImpl implements NotificationService {
         SseEmitter emitter = new SseEmitter(30 * 60 * 1000L); // 30분 유지
         configureEmitter(userId, emitter);
         emitters.put(userId, emitter);
+
+        //미전송 알림 처리
+        sendUnsentNotifications(userId, emitter);
         return emitter;
     }
 
@@ -75,6 +77,27 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     /**
+     * 미전송 알림 처리
+     * @param userId
+     * @param emitter
+     */
+    private void sendUnsentNotifications(Long userId, SseEmitter emitter) {
+        List<Notification> unsentNotifications = notificationRepository.findUnsentNotifications(userId);
+
+        if (!unsentNotifications.isEmpty()) {
+            log.info("미전송 알림 {}건을 SSE를 통해 전송", unsentNotifications.size());
+            unsentNotifications.forEach(notification -> {
+                try {
+                    emitter.send(SseEmitter.event().name("notification").data(notification.getMessage()));
+                    updateNotificationStatus(notification.getId(), true);
+                } catch (IOException e) {
+                    log.warn("미전송 알림 발송 실패: {}", e.getMessage());
+                }
+            });
+        }
+    }
+
+    /**
      * 모든 클라이언트에게 Ping 메시지 전송
      */
     private void sendBroadcastPing() {
@@ -101,31 +124,59 @@ public class NotificationServiceImpl implements NotificationService {
      */
     @Override
     public void sendNotification(NotificationRequestDto requestDto) {
-        SseEmitter emitter = emitters.get(requestDto.userId());
+        // 1. Notification 테이블에 insert
+        NotificationResponseDto savedNotification = postNotification(requestDto);
+        log.info("저장된 notification = {} {}", savedNotification.notifyTime(), savedNotification.message());
 
+        // 2. SSE 구독 여부 확인
+        SseEmitter emitter = emitters.get(requestDto.userId());
         if (emitter != null) {
             try {
+                // 3. SSE 실시간 알림 전송
                 emitter.send(SseEmitter.event().name("notification").data(requestDto.message()));
 
-                //Notification 테이블에 insert
-                NotificationResponseDto savedNotification = postNotification(requestDto);
-                log.info("저장된 notification = {} {}", savedNotification.notifyTime(), savedNotification.message());
+                // 4. 전송 성공시 isSent -> true
+                updateNotificationStatus(savedNotification.notificationId(), true);
+                log.info("SSE 알림 전송 완료: {}", savedNotification.message());
 
             } catch (IOException | IllegalStateException e) {
                 log.warn("실시간 알림 발송 실패: {}", e.getMessage());
                 emitters.remove(requestDto.userId(), emitter);
             }
+        } else {
+            log.info("사용자가 현재 SSE 구독 중이 아님, 로그인 후 알림 확인 가능");
         }
+    }
+
+    @Override
+    @Transactional
+    public void updateNotificationStatus(Long notificationId, boolean isSent) {
+        notificationRepository.updateIsSent(notificationId, isSent);
+    }
+
+    /**
+     * sse 연결 종료
+     *
+     * @param userId
+     */
+    @Override
+    public void disconnect(Long userId) {
+        SseEmitter emitter = emitters.remove(userId);
+        if (emitter != null) {
+            emitter.complete();  // 연결 종료
+        }
+
     }
 
     /**
      * Notification 테이블에 insert
+     *
      * @param requestDto
      * @return
      */
     private NotificationResponseDto postNotification(NotificationRequestDto requestDto) {
         User user = userRepository.findById(requestDto.userId())
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FIND_USER));
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER));
 
         Notification notification = Notification.from(requestDto);
         notification.assignUser(user);
@@ -136,6 +187,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     /**
      * Notification 테이블 조회 (최대 50개, 최대 1달)
+     *
      * @param userId
      * @return
      */

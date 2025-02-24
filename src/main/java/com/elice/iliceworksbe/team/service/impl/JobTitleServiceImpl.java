@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +24,11 @@ public class JobTitleServiceImpl implements JobTitleService {
     @Transactional
     @Override
     public JobTitleResponseDto postJobTitle(JobTitleRequestDto jobTitleRequestDto) {
+
+        if (jobTitleRepository.existsByName(jobTitleRequestDto.name())) {
+            throw new BaseException(ErrorCode.DUPLICATED_JOB_TITLE_NAME);
+        }
+
         JobTitle savedJobTitle = jobTitleRepository.save(JobTitle.from(jobTitleRequestDto));
         return JobTitleResponseDto.from(savedJobTitle);
     }
@@ -32,7 +36,7 @@ public class JobTitleServiceImpl implements JobTitleService {
     @Override
     public JobTitleResponseDto getJobTitle(Long jobTitleId) {
         JobTitle findedJobTitle = jobTitleRepository.findById(jobTitleId)
-                .orElseThrow(() -> new BaseException(ErrorCode.JOB_TITLE_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_JOB_TITLE));
         return JobTitleResponseDto.from(findedJobTitle);
     }
 
@@ -48,7 +52,11 @@ public class JobTitleServiceImpl implements JobTitleService {
     @Override
     public JobTitleResponseDto patchJobTitle(Long jobTitleId, JobTitleUpdateDto jobTitleUpdateDto) {
         JobTitle findedJobTitle = jobTitleRepository.findById(jobTitleId)
-                .orElseThrow(() -> new BaseException(ErrorCode.JOB_TITLE_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_JOB_TITLE));
+
+        if (jobTitleRepository.existsByName(jobTitleUpdateDto.name())) {
+            throw new BaseException(ErrorCode.DUPLICATED_JOB_TITLE_NAME);
+        }
 
         findedJobTitle.update(jobTitleUpdateDto);
 
@@ -59,15 +67,10 @@ public class JobTitleServiceImpl implements JobTitleService {
     @Transactional
     @Override
     public void deleteJobTitle(Long jobTitleId) {
-        jobTitleRepository.deleteById(jobTitleId);
+        JobTitle findedJobTitle = jobTitleRepository.findById(jobTitleId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_JOB_TITLE));
+
+        jobTitleRepository.deleteById(findedJobTitle.getId());
     }
 
-    @PostConstruct
-    public void init() {
-        JobTitle jobTitle = JobTitle.builder()
-                .name("없음")
-                .build();
-
-        jobTitleRepository.save(jobTitle);
-    }
 }
