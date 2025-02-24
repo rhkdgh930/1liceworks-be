@@ -1,4 +1,11 @@
 package com.elice.iliceworksbe.notification.dto.request;
 
-public record NotificationRequestDto(Long userId, String message) {
-}
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record NotificationRequestDto(
+        @NotNull(message = "userId는 필수 입력 값입니다")
+        Long userId,
+        @NotBlank(message = "message는 필수 입력 값입니다")
+        String message
+) {}
