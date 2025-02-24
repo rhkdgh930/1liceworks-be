@@ -1,6 +1,6 @@
 package com.elice.iliceworksbe.ai.web;
 
-import com.elice.iliceworksbe.ai.service.AiService;
+import com.elice.iliceworksbe.ai.service.AIService;
 import com.elice.iliceworksbe.common.exception.BaseResponse;
 import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,9 +15,9 @@ import java.util.Map;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/ai")
-public class AiController {
+public class AIController {
 
-    private final AiService aiService;
+    private final AIService aiService;
 
     @PostMapping("/generate_schedule")
     public BaseResponse<Map<String, Object>> generateSchedule(@RequestBody Map<String, String> request) {

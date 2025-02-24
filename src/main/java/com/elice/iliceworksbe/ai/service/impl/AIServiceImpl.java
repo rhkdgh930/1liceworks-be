@@ -1,7 +1,8 @@
 package com.elice.iliceworksbe.ai.service.impl;
 
-import com.elice.iliceworksbe.ai.service.AiService;
+import com.elice.iliceworksbe.ai.service.AIService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -15,7 +16,7 @@ import java.util.Map;
 
 @Service
 @Slf4j
-public class AiServiceImpl implements AiService {
+public class AIServiceImpl implements AIService {
 
     private static final String FLASK_URL = "http://34.22.92.60:5000";
 
