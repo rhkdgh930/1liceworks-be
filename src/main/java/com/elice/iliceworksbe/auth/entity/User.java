@@ -1,5 +1,6 @@
 package com.elice.iliceworksbe.auth.entity;
 
+import com.elice.iliceworksbe.auth.dto.request.PatchProfileRequestDto;
 import com.elice.iliceworksbe.common.constant.Role;
 import com.elice.iliceworksbe.common.constant.Status;
 import com.elice.iliceworksbe.common.entity.BaseEntity;
@@ -34,7 +35,7 @@ public class User extends BaseEntity {
     @Column(name = "account_id", nullable = false)
     private String accountId;
 
-    @Column(name = "private_email", nullable = false)
+    @Column(name = "private_email")
     private String privateEmail;
 
     @Column(name = "role", nullable = false)
@@ -56,4 +57,36 @@ public class User extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
+
+    public void patchMyProfile(PatchProfileRequestDto patchProfileRequestDto, String updatedProfileImageUrl) {
+        this.username = patchProfileRequestDto.username();
+        this.phone = patchProfileRequestDto.phone();
+        this.profileImage = updatedProfileImageUrl;
+    }
+
+    public void patchUsername(String username) {
+        this.username = username;
+    }
+
+    public void changePassword(String password) {
+        this.password = password;
+    }
+
+    public void setUserStatus(Status status) {
+        this.status = status;
+    }
+
+    public ArchivingUser toArchivingUser() {
+        return ArchivingUser.builder()
+                .username(this.username)
+                .password(this.password)
+                .accountId(this.accountId)
+                .privateEmail(this.privateEmail)
+                .role(this.role)
+                .profileImage(this.profileImage)
+                .phone(this.phone)
+                .isTeamCreated(this.isTeamCreated)
+                .team(this.team)
+                .build();
+    }
 }

@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +24,11 @@ public class UserTypeServiceImpl implements UserTypeService{
     @Transactional
     @Override
     public UserTypeResponseDto postUserType(UserTypeRequestDto userTypeRequestDto) {
+
+        if (userTypeRepository.existsByName(userTypeRequestDto.name())) {
+            throw new BaseException(ErrorCode.DUPLICATED_USER_TYPE_NAME);
+        }
+
         UserType savedUserType = userTypeRepository.save(UserType.from(userTypeRequestDto));
         return UserTypeResponseDto.from(savedUserType);
     }
@@ -32,7 +36,7 @@ public class UserTypeServiceImpl implements UserTypeService{
     @Override
     public UserTypeResponseDto getUserType(Long userTypeId) {
         UserType findedUserType = userTypeRepository.findById(userTypeId)
-                .orElseThrow(() -> new BaseException(ErrorCode.USER_TYPE_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER_TYPE));
         return UserTypeResponseDto.from(findedUserType);
     }
 
@@ -48,7 +52,11 @@ public class UserTypeServiceImpl implements UserTypeService{
     @Override
     public UserTypeResponseDto patchUserType(Long userTypeId, UserTypeUpdateDto userTypeUpdateDto) {
         UserType findedUserType = userTypeRepository.findById(userTypeId)
-                .orElseThrow(() -> new BaseException(ErrorCode.USER_TYPE_NOT_FOUND));
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER_TYPE));
+
+        if (userTypeRepository.existsByName(userTypeUpdateDto.name())) {
+            throw new BaseException(ErrorCode.DUPLICATED_USER_TYPE_NAME);
+        }
 
         findedUserType.update(userTypeUpdateDto);
 
@@ -59,15 +67,9 @@ public class UserTypeServiceImpl implements UserTypeService{
     @Transactional
     @Override
     public void deleteUserType(Long userTypeId) {
-        userTypeRepository.deleteById(userTypeId);
+        UserType findedUserType = userTypeRepository.findById(userTypeId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER_TYPE));
+        userTypeRepository.deleteById(findedUserType.getId());
     }
 
-    @PostConstruct
-    public void init() {
-        UserType userType = UserType.builder()
-                .name("없음")
-                .build();
-
-        userTypeRepository.save(userType);
-    }
 }

@@ -1,15 +1,16 @@
 package com.elice.iliceworksbe.notification.web;
 
-
 import com.elice.iliceworksbe.auth.model.UserDetailsImpl;
-import com.elice.iliceworksbe.common.exception.BaseException;
 import com.elice.iliceworksbe.common.exception.BaseResponse;
-import com.elice.iliceworksbe.common.exception.ErrorCode;
-import com.elice.iliceworksbe.notification.dto.response.EventNotificationResponseDto;
-import com.elice.iliceworksbe.notification.service.impl.NotificationServiceImpl;
+import com.elice.iliceworksbe.notification.dto.request.WebhookRequestDto;
+import com.elice.iliceworksbe.notification.dto.response.NotificationResponseDto;
+import com.elice.iliceworksbe.notification.dto.response.WebhookResponseDto;
+import com.elice.iliceworksbe.notification.service.NotificationService;
+import com.elice.iliceworksbe.notification.service.WebhookService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -21,24 +22,36 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/notification")
 public class NotificationController {
-    private final NotificationServiceImpl notificationService;
+    private final NotificationService notificationService;
+    private final WebhookService webhookService;
 
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        // 인증되지 않은 사용자 예외 처리
-        if (userDetails == null || userDetails.getUsername() == null || userDetails.getUsername().isEmpty()) {
-            log.warn("SSE 구독 요청 거부: 인증되지 않은 사용자");
-            throw new BaseException(ErrorCode.INVALID_USER_JWT);
-        }
-        String username = userDetails.getUsername();
-        log.info("SSE 구독 요청: username={}", username);
-        return notificationService.createEmitter(username); // SseEmitter를 반환
+        Long userId = userDetails.getUserId();
+        log.info("SSE 구독 요청: userId={}", userId);
+        return notificationService.createEmitter(userId); // SseEmitter를 반환
     }
 
     @GetMapping
-    public BaseResponse<List<EventNotificationResponseDto>> getAllNotifications(
-            @AuthenticationPrincipal UserDetailsImpl userDetails){
-        List<EventNotificationResponseDto> getResponseDtos = notificationService.getNotification(userDetails.getUserId());
+    public BaseResponse<List<NotificationResponseDto>> getNotifications(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        List<NotificationResponseDto> getResponseDtos = notificationService.getNotifications(userDetails.getUserId());
         return new BaseResponse<>(getResponseDtos);
+    }
+
+    /**
+     * 웹훅 등록
+     * @param userDetails
+     * @param requestDto
+     * @return
+     */
+    @PreAuthorize("hasAuthority('LEADER')")
+    @PostMapping("/webhook")
+    public BaseResponse<WebhookResponseDto> postWebhook(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestBody WebhookRequestDto requestDto) {
+        Long userId = userDetails.getUserId();
+        WebhookResponseDto postResponseDto = webhookService.postWebhook(userId, requestDto);
+        return new BaseResponse<>(postResponseDto);
     }
 }

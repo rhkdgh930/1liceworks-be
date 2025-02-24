@@ -3,13 +3,11 @@ package com.elice.iliceworksbe.notification.service.impl;
 
 import com.elice.iliceworksbe.auth.entity.User;
 import com.elice.iliceworksbe.auth.repository.UserRepository;
-import com.elice.iliceworksbe.calendar.entity.Event;
-import com.elice.iliceworksbe.calendar.repository.EventRepository;
 import com.elice.iliceworksbe.common.exception.BaseException;
 import com.elice.iliceworksbe.common.exception.ErrorCode;
-import com.elice.iliceworksbe.notification.dto.request.EventNotificationRequestDto;
-import com.elice.iliceworksbe.notification.dto.response.EventNotificationResponseDto;
-import com.elice.iliceworksbe.notification.entity.EventNotification;
+import com.elice.iliceworksbe.notification.dto.request.NotificationRequestDto;
+import com.elice.iliceworksbe.notification.dto.response.NotificationResponseDto;
+import com.elice.iliceworksbe.notification.entity.Notification;
 import com.elice.iliceworksbe.notification.repository.NotificationRepository;
 import com.elice.iliceworksbe.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +19,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,39 +28,41 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
-    private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
-    private final EventRepository eventRepository;
+    private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     /**
      * SSE 연결
      *
-     * @param username
+     * @param userId
      * @return
      */
     @Override
-    public SseEmitter createEmitter(String username) {
-        SseEmitter emitter = new SseEmitter(60 * 1000L); // 1분 유지
-        configureEmitter(username, emitter);
-        emitters.put(username, emitter);
+    public SseEmitter createEmitter(Long userId) {
+        SseEmitter emitter = new SseEmitter(30 * 60 * 1000L); // 30분 유지
+        configureEmitter(userId, emitter);
+        emitters.put(userId, emitter);
+
+        //미전송 알림 처리
+        sendUnsentNotifications(userId, emitter);
         return emitter;
     }
 
-    private void configureEmitter(String username, SseEmitter emitter) {
+    private void configureEmitter(Long userId, SseEmitter emitter) {
         emitter.onCompletion(() -> {
-            log.info("SSE 연결 종료: {}", username);
-            emitters.remove(username);
+            log.info("SSE 연결 종료: {}", userId);
+            emitters.remove(userId);
         });
 
         emitter.onTimeout(() -> {
-            log.info("SSE 연결 타임아웃: {}", username);
-            emitters.remove(username);
+            log.info("SSE 연결 타임아웃: {}", userId);
+            emitters.remove(userId);
         });
 
         emitter.onError(e -> {
-            log.error("SSE 에러 발생 ({}): {}", username, e.getMessage());
-            emitters.remove(username);
+            log.error("SSE 에러 발생 ({}): {}", userId, e.getMessage());
+            emitters.remove(userId);
             try {
                 //클라이언트에게 error 이벤트 전송
                 emitter.send(SseEmitter.event()
@@ -78,90 +77,132 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     /**
-     * 특정 사용자에게 실시간 알림 전송
-     *
-     * @param username
-     * @param message
+     * 미전송 알림 처리
+     * @param userId
+     * @param emitter
      */
+    private void sendUnsentNotifications(Long userId, SseEmitter emitter) {
+        List<Notification> unsentNotifications = notificationRepository.findUnsentNotifications(userId);
 
+        if (!unsentNotifications.isEmpty()) {
+            log.info("미전송 알림 {}건을 SSE를 통해 전송", unsentNotifications.size());
+            unsentNotifications.forEach(notification -> {
+                try {
+                    emitter.send(SseEmitter.event().name("notification").data(notification.getMessage()));
+                    updateNotificationStatus(notification.getId(), true);
+                } catch (IOException e) {
+                    log.warn("미전송 알림 발송 실패: {}", e.getMessage());
+                }
+            });
+        }
+    }
+
+    /**
+     * 모든 클라이언트에게 Ping 메시지 전송
+     */
+    private void sendBroadcastPing() {
+        emitters.forEach((userId, emitter) -> {
+            try {
+                emitter.send(SseEmitter.event().name("ping").data("keep-alive"));
+            } catch (IOException | IllegalStateException e) {
+                log.warn("Ping 메시지 전송 실패 - 사용자: {}, 이유: {}", userId, e.getMessage());
+                emitters.remove(userId);
+            }
+        });
+    }
+
+    /**
+     * 1분마다 자동으로 Ping 메시지 전송
+     */
+    @Scheduled(fixedRate = 60 * 1000L)  // 1분마다 ping 전송
+    public void scheduledPing() {
+        sendBroadcastPing();
+    }
+
+    /**
+     * 특정 사용자에게 실시간 알림 전송
+     */
     @Override
-    public void sendNotification(String username, String message) {
-        SseEmitter emitter = emitters.get(username);
+    public void sendNotification(NotificationRequestDto requestDto) {
+        // 1. Notification 테이블에 insert
+        NotificationResponseDto savedNotification = postNotification(requestDto);
+        log.info("저장된 notification = {} {}", savedNotification.notifyTime(), savedNotification.message());
+
+        // 2. SSE 구독 여부 확인
+        SseEmitter emitter = emitters.get(requestDto.userId());
         if (emitter != null) {
             try {
-                emitter.send(SseEmitter.event().name("notification").data(message));
+                // 3. SSE 실시간 알림 전송
+                emitter.send(SseEmitter.event().name("notification").data(requestDto.message()));
+
+                // 4. 전송 성공시 isSent -> true
+                updateNotificationStatus(savedNotification.notificationId(), true);
+                log.info("SSE 알림 전송 완료: {}", savedNotification.message());
+
             } catch (IOException | IllegalStateException e) {
-                log.warn("실시간 알림 발송 실패");
-                emitters.remove(username, emitter);
+                log.warn("실시간 알림 발송 실패: {}", e.getMessage());
+                emitters.remove(requestDto.userId(), emitter);
             }
+        } else {
+            log.info("사용자가 현재 SSE 구독 중이 아님, 로그인 후 알림 확인 가능");
         }
     }
 
-    /**
-     * notifyTime이 현재 시간과 일치하는 알림을 사용자에게 전송
-     */
     @Override
     @Transactional
-    @Scheduled(fixedRate = 60000) // 1분마다 실행
-    public void checkAndSendScheduledNotification() {
-        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        LocalDateTime start = now.minusSeconds(1);
-        LocalDateTime end = now.plusSeconds(1);
-
-        List<EventNotification> notifications = notificationRepository.findByNotifyTimeBetween(start, end);
-        log.info("notification 보내기{}", notifications);
-        if (!notifications.isEmpty()) {
-            log.info("발송할 알림 개수: {}", notifications.size());
-            for (EventNotification notification : notifications) {
-                try {
-                    sendNotification(notification.getUser().getAccountId(), notification.getMessage());
-                } catch (Exception e) {
-                    log.error("알림 전송 실패 - 사용자: {}, 오류: {}", notification.getUser().getUsername(), e.getMessage(), e);
-                }
-            }
-        }
+    public void updateNotificationStatus(Long notificationId, boolean isSent) {
+        notificationRepository.updateIsSent(notificationId, isSent);
     }
 
     /**
-     * 일정 생성시 알림 테이블에 insert
+     * sse 연결 종료
+     *
+     * @param userId
+     */
+    @Override
+    public void disconnect(Long userId) {
+        SseEmitter emitter = emitters.remove(userId);
+        if (emitter != null) {
+            emitter.complete();  // 연결 종료
+        }
+
+    }
+
+    /**
+     * Notification 테이블에 insert
+     *
      * @param requestDto
      * @return
      */
-    @Override
-    public EventNotificationResponseDto postEventNotification(EventNotificationRequestDto requestDto) {
-        User user = userRepository.findByAccountId(requestDto.username())
-                .orElseThrow(() -> new BaseException(ErrorCode.USERS_INFO_UNKNOWN));
+    private NotificationResponseDto postNotification(NotificationRequestDto requestDto) {
+        User user = userRepository.findById(requestDto.userId())
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER));
 
-        Event event = eventRepository.findById(requestDto.eventId())
-                .orElseThrow(() -> new BaseException(ErrorCode.EVENT_NOT_FOUND));
+        Notification notification = Notification.from(requestDto);
+        notification.assignUser(user);
 
-        EventNotification eventNotification = EventNotification.from(requestDto);
-        eventNotification.assignUser(user);
-        eventNotification.assignEvent(event);
-
-        EventNotification savedNotification = notificationRepository.save(eventNotification);
-        return EventNotificationResponseDto.from(savedNotification);
+        Notification savedNotification = notificationRepository.save(notification);
+        return NotificationResponseDto.from(savedNotification);
     }
 
     /**
-     * 알림 조회 기능
+     * Notification 테이블 조회 (최대 50개, 최대 1달)
+     *
      * @param userId
      * @return
      */
     @Override
     @Transactional
-    public List<EventNotificationResponseDto> getNotification(Long userId) {
+    public List<NotificationResponseDto> getNotifications(Long userId) {
+        LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
+
         //DB에서 isRead = false인 알림 업데이트
         notificationRepository.markAllAsReadByUserId(userId);
 
-        return notificationRepository.findByUserId(userId)
+        return notificationRepository.findTop50ByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(userId, oneMonthAgo)
                 .stream()
-                .map(EventNotificationResponseDto::from)
+                .map(NotificationResponseDto::from)
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public void deleteNotification(Long notificationId) {
-        notificationRepository.deleteById(notificationId);
-    }
 }
