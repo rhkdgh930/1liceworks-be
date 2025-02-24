@@ -9,6 +9,9 @@ import com.elice.iliceworksbe.auth.repository.UserRepository;
 import com.elice.iliceworksbe.auth.service.AuthService;
 import com.elice.iliceworksbe.auth.utils.JwtTokenProvider;
 import com.elice.iliceworksbe.auth.utils.RefreshTokenProvider;
+import com.elice.iliceworksbe.calendar.entity.Calendar;
+import com.elice.iliceworksbe.calendar.repository.CalendarRepository;
+import com.elice.iliceworksbe.common.constant.CalendarType;
 import com.elice.iliceworksbe.common.constant.Role;
 import com.elice.iliceworksbe.common.constant.Status;
 import com.elice.iliceworksbe.common.exception.BaseException;
@@ -59,6 +62,7 @@ public class AuthServiceImpl implements AuthService {
     private final RedisDAO redisDAO;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenProvider refreshTokenProvider;
+    private final CalendarRepository calendarRepository;
 
 
     @Override
@@ -162,6 +166,14 @@ public class AuthServiceImpl implements AuthService {
                 .hireDate(LocalDateTime.now())
                 .build();
 
+        // 6. 해당 팀의 캘린더 생성
+        Calendar teamCalendar = Calendar.builder()
+                .name(signUpRequestDto.teamInfo().teamName() + "팀 캘린더")
+                .type(CalendarType.TEAM)
+                .typeId(newTeam.getId())
+                .build();
+
+        calendarRepository.save(teamCalendar);
         userRepository.save(signUpUser);
         employeeRepository.save(signUpEmployee);
     }

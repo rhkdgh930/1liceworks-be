@@ -68,6 +68,10 @@ public class User extends BaseEntity {
         this.username = username;
     }
 
+    public boolean checkMyTeam(Team team) {
+        return this.team.equals(team);
+    }
+
     public void changePassword(String password) {
         this.password = password;
     }
