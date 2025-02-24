@@ -41,11 +41,20 @@ public class EventReminderServiceImpl implements EventReminderService {
      * @param requestDtos
      * @return
      */
+    @Transactional
     @Override
     public List<EventReminderResponseDto> postEventReminder(Long eventId, List<EventReminderRequestDto> requestDtos) {
+        Event event = findEventById(eventId);
+        return saveEventReminders(requestDtos, event);
+    }
 
+    private Event findEventById(Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_EVENT));
+        return event;
+    }
+
+    private List<EventReminderResponseDto> saveEventReminders(List<EventReminderRequestDto> requestDtos, Event event) {
         List<EventReminderResponseDto> responseDtos = new ArrayList<>();
 
         for (EventReminderRequestDto requestDto : requestDtos) {
@@ -60,6 +69,7 @@ public class EventReminderServiceImpl implements EventReminderService {
 
     /**
      * EventReminder 조회
+     *
      * @param eventId
      * @return
      */
@@ -73,6 +83,7 @@ public class EventReminderServiceImpl implements EventReminderService {
 
     /**
      * 일정에 있는 EventReminder 모두 삭제
+     *
      * @param eventId
      */
     @Override
@@ -116,11 +127,10 @@ public class EventReminderServiceImpl implements EventReminderService {
             try {
                 NotificationRequestDto requestDto = new NotificationRequestDto(participant.getId(), message);
                 notificationService.sendNotification(requestDto);
-            } catch (Exception e){
+            } catch (Exception e) {
                 log.error("알림 전송 실패 - 사용자: {}, 오류: {}", participant.getId(), e.getMessage(), e);
             }
         });
-
     }
 
 }
