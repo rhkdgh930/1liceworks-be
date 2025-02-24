@@ -117,11 +117,12 @@ public class EventReminderServiceImpl implements EventReminderService {
      */
     @Transactional
     public void processEventReminder(EventReminder eventReminder) {
-        Event event = eventReminder.getEvent();
-        String message = event.getSummary();
+        Long eventId = eventReminder.getEvent().getId();
+        log.info("eventId", eventId);
+        String message = eventReminder.getEvent().getDescription();
 
-        List<EventParticipant> participants = eventParticipantRepository.findByEvent(event);
-        log.info("이벤트 '{}' 에 대한 참가자 수: {}", event.getSummary(), participants.size());
+        List<EventParticipant> participants = eventParticipantRepository.findByEventId(eventId);
+        log.info("이벤트 '{}' 에 대한 참가자 수: {}", message, participants.size());
 
         participants.forEach(participant -> {
             try {

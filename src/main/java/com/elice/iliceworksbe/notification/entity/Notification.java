@@ -33,11 +33,11 @@ public class Notification extends BaseEntity {
     @Column(name = "notify_time", nullable = false)
     private LocalDateTime notifyTime;
 
-    @Column(name = "is_read", nullable = false)
-    private Boolean isRead = Boolean.FALSE;
+    @Column(name = "is_read")
+    private boolean isRead = false;
 
-    @Column(name = "is_sent", nullable = false)
-    private Boolean isSent = Boolean.FALSE;
+    @Column(name = "is_sent")
+    private boolean isSent = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
