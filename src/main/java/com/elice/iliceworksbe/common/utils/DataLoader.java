@@ -2,6 +2,9 @@ package com.elice.iliceworksbe.common.utils;
 
 import com.elice.iliceworksbe.auth.entity.User;
 import com.elice.iliceworksbe.auth.repository.UserRepository;
+import com.elice.iliceworksbe.calendar.entity.Calendar;
+import com.elice.iliceworksbe.calendar.repository.CalendarRepository;
+import com.elice.iliceworksbe.common.constant.CalendarType;
 import com.elice.iliceworksbe.common.constant.Role;
 import com.elice.iliceworksbe.common.constant.Status;
 import com.elice.iliceworksbe.team.constant.Industry;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /*
 서버 데이터 초기화용
@@ -24,8 +28,9 @@ import java.time.LocalDateTime;
 public class DataLoader {
 
     private final TeamRepository teamRepository;
-    private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
+    private final CalendarRepository calendarRepository;
+    private final EmployeeRepository employeeRepository;
     private final PositionRepository positionRepository;
     private final JobTitleRepository jobTitleRepository;
     private final UserTypeRepository userTypeRepository;
@@ -54,6 +59,21 @@ public class DataLoader {
 
         teamRepository.save(iliceTeamBE);
         teamRepository.save(iliceTeamFE);
+
+        Calendar calendarBE = Calendar.builder()
+                .name("일리스 BE팀 캘린더")
+                .type(CalendarType.TEAM)
+                .typeId(iliceTeamBE.getId())
+                .build();
+
+        Calendar calendarFE = Calendar.builder()
+                .name("일리스 FE팀 캘린더")
+                .type(CalendarType.TEAM)
+                .typeId(iliceTeamFE.getId())
+                .build();
+
+        calendarRepository.save(calendarBE);
+        calendarRepository.save(calendarFE);
 
         Position staffPosition = Position.builder()
                 .name("사원")
@@ -190,6 +210,38 @@ public class DataLoader {
         employeeRepository.save(soogyeongEmployee);
         employeeRepository.save(hyerimEmployee);
         employeeRepository.save(kyungjunEmployee);
+
+        Calendar calendarTaeseung = Calendar.builder()
+                .name("태승 / 직급1")
+                .type(CalendarType.MEMBER)
+                .typeId(taeseungUser.getId())
+                .build();
+
+        Calendar calendarKwangho = Calendar.builder()
+                .name("광호 / 직급2")
+                .type(CalendarType.MEMBER)
+                .typeId(kwanghoUser.getId())
+                .build();
+
+        Calendar calendarSugyeong = Calendar.builder()
+                .name("수경 / 직급3")
+                .type(CalendarType.MEMBER)
+                .typeId(soogyeongUser.getId())
+                .build();
+
+        Calendar calendarHyerim = Calendar.builder()
+                .name("혜림 / 직급2")
+                .type(CalendarType.MEMBER)
+                .typeId(hyerimUser.getId())
+                .build();
+
+        Calendar calendarKyungjun = Calendar.builder()
+                .name("경준 / 직급2")
+                .type(CalendarType.MEMBER)
+                .typeId(kyungjunUser.getId())
+                .build();
+
+        calendarRepository.saveAll(List.of(calendarTaeseung, calendarKwangho, calendarSugyeong, calendarHyerim, calendarKyungjun));
 
 
     }
