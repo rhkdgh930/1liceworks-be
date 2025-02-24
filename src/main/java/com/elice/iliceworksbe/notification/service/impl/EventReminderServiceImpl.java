@@ -69,7 +69,6 @@ public class EventReminderServiceImpl implements EventReminderService {
 
     /**
      * EventReminder 조회
-     *
      * @param eventId
      * @return
      */
@@ -83,7 +82,6 @@ public class EventReminderServiceImpl implements EventReminderService {
 
     /**
      * 일정에 있는 EventReminder 모두 삭제
-     *
      * @param eventId
      */
     @Override
@@ -132,6 +130,7 @@ public class EventReminderServiceImpl implements EventReminderService {
                 log.error("알림 전송 실패 - 사용자: {}, 오류: {}", participant.getId(), e.getMessage(), e);
             }
         });
+
     }
 
 }
