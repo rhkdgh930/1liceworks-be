@@ -40,7 +40,16 @@ public class NotificationServiceImpl implements NotificationService {
      */
     @Override
     public SseEmitter createEmitter(Long userId) {
-        SseEmitter emitter = new SseEmitter(30 * 60 * 1000L); // 30분 유지
+
+        // 기존 Emitter가 있다면 정리 후 새로운 Emitter 생성
+        emitters.compute(userId, (key, existingEmitter) -> {
+            if (existingEmitter != null) {
+                existingEmitter.complete(); // 기존 연결 강제 종료
+            }
+            return new SseEmitter(30 * 60 * 1000L); // 30분 유지
+        });
+
+        SseEmitter emitter = emitters.get(userId);
         configureEmitter(userId, emitter);
         emitters.put(userId, emitter);
 
@@ -78,6 +87,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     /**
      * 미전송 알림 처리
+     *
      * @param userId
      * @param emitter
      */
