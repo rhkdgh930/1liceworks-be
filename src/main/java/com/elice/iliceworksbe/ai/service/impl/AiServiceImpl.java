@@ -17,7 +17,7 @@ import java.util.Map;
 @Slf4j
 public class AiServiceImpl implements AiService {
 
-    private static final String FLASK_URL = "http://localhost:5000";
+    private static final String FLASK_URL = "http://34.22.92.60:5000";
 
     @Override
     public String generateSchedule(String prompt) {
