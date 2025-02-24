@@ -59,7 +59,7 @@ public enum ErrorCode {
     FAILED_TO_ENCRYPT_PASSWORD(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 암호화에 실패하였습니다."),
     FAILED_TO_DECRYPT_PASSWORD(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 복호화에 실패하였습니다."),
     UNEXPECTED_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "예상치 못한 에러가 발생했습니다."),
-
+    FAILED_TO_JSON_PARSING(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "JSON 파싱을 실패했습니다."),
     /**
      * 400 : Validation Error
      */
