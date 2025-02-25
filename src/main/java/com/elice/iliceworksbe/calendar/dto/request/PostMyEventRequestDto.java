@@ -36,11 +36,10 @@ public record PostMyEventRequestDto(
                 .privacyType(responseDto.getPrivacyType())
                 .availability(responseDto.getAvailability())
                 .location(responseDto.getLocation())
-                .eventReminders(responseDto.getEventReminders() != null ?
-                        responseDto.getEventReminders().stream()
+                .eventReminders(responseDto.getEventReminders().stream()
                                 .map(reminder -> new EventReminderDto(reminder.getNotifyTime()))
                                 .collect(Collectors.toList())
-                        : null)
+                )
                 .build();
     }
 }
