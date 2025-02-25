@@ -60,6 +60,11 @@ public class WebhookServiceImpl implements WebhookService {
             throw new BaseException(ErrorCode.DENIED_ROLE_PERMISSION);
         }
 
+        // 4. 중복 Webhook 체크
+        if (webhookRepository.findByCalendarId(calendar.getId()).isPresent()) {
+            throw new BaseException(ErrorCode.DUPLICATED_WEBHOOK);
+        }
+
         Webhook webhook = Webhook.from(requestDto);
         webhook.assignCalendar(calendar);
 
