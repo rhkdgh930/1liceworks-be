@@ -22,10 +22,13 @@ import com.elice.iliceworksbe.notification.utils.NotificationMessages;
 import com.elice.iliceworksbe.team.entity.Team;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
@@ -42,9 +45,7 @@ public class EventServiceImpl implements EventService {
     public void postTeamEvent(Long userId, Long calendarId, PostTeamEventRequestDto postTeamEventRequestDto) {
 
         // 1. 현재 유저의 팀 조회
-        Team team = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER))
-                .getTeam();
+        Team team = getTeamByUserID(userId);
 
         // 2. CalendarId가 해당 유저의 팀 캘린더가 맞는지 조회
         Calendar teamCalendar = calendarRepository.findById(calendarId)
@@ -94,15 +95,16 @@ public class EventServiceImpl implements EventService {
         // 6-2. 해당 팀의 모든 구성원들에게 알림 보냄
         teamUsers.forEach(
                 m -> notificationService.sendNotification(
-                                NotificationRequestDto.builder()
-                                        .userId(m.getId())
-                                        .message(NotificationMessages.CREATE_TEAM.getMessage())
-                                        .build()
-                        )
+                        NotificationRequestDto.builder()
+                                .userId(m.getId())
+                                .message(NotificationMessages.CREATE_TEAM.getMessage())
+                                .build()
+                )
         );
     }
 
     @Override
+    @Transactional
     public void postMyEvent(Long userId, PostMyEventRequestDto postMyEventRequestDto) {
 
         // 1. 현재 유저의 캘린더 조회
@@ -127,5 +129,71 @@ public class EventServiceImpl implements EventService {
                 .event(myEvent)
                 .build();
         eventParticipantRepository.save(eventParticipant);
+    }
+
+    @Override
+    @Transactional
+    public void deleteTeamEvent(Long userId, Long calendarId, Long eventId) {
+
+        // 1. 현재 유저의 팀 조회
+        Team team = getTeamByUserID(userId);
+
+        // 2. CalendarId가 해당 유저의 팀 캘린더가 맞는지 조회
+        Calendar teamCalendar = calendarRepository.findById(calendarId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_CALENDAR));
+
+        if (!(teamCalendar.getId().equals(team.getId()) && teamCalendar.getType().equals(CalendarType.TEAM))) {
+            throw new BaseException(ErrorCode.NOT_FOUND_CALENDAR);
+        }
+
+        // 3. 해당 일정이 해당 팀의 Calendar에 맞는지 확인
+        validateEventInCalendar(eventId, teamCalendar);
+
+        // 4. 일정 삭제
+        deleteEventByEventId(eventId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteMyEvent(Long userId, Long eventId) {
+        // 1. 현재 유저의 캘린더 조회
+        User currentUser = userRepository.findById(userId).orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER));
+        Calendar myCalendar = calendarRepository.findByTypeAndTypeId(CalendarType.MEMBER, userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_CALENDAR));
+
+        // 2. 해당 이벤트가 현재 캘린더의 이벤트가 맞는지 확인
+        validateEventInCalendar(eventId, myCalendar);
+
+        // 3. 일정 삭제
+        deleteEventByEventId(eventId);
+    }
+
+    private Team getTeamByUserID(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER))
+                .getTeam();
+    }
+
+    private void validateEventInCalendar(Long eventId, Calendar calendar) {
+        Event targetEvent = eventRepository.findById(eventId)
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_EVENT));
+        if (!calendar.equals(targetEvent.getCalendar())) {
+            throw new BaseException(ErrorCode.NOT_FOUND_EVENT);
+        }
+    }
+
+    private void deleteEventByEventId(Long eventId) {
+        // 해당 일정의 일정 참석자들 삭제
+        eventParticipantRepository.deleteByEventId(eventId);
+
+        try {
+            // 해당 일정의 EventReminder 삭제
+            eventReminderRepository.deleteByEventId(eventId);
+        } catch (EmptyResultDataAccessException e) {
+            log.info("eventReminderRepository.deleteByEventId({}) is empty", eventId);
+        }
+
+        // 해당 팀 캘린더에 대한 일정 삭제
+        eventRepository.deleteById(eventId);
     }
 }

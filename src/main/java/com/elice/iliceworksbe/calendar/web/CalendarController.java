@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,6 +39,23 @@ public class CalendarController {
                                             @RequestBody PostMyEventRequestDto postMyEventRequestDto) {
 
         eventService.postMyEvent(userDetails.getUserId(), postMyEventRequestDto);
+        return new BaseResponse<>(ErrorCode.NO_CONTENT);
+    }
+
+    @Operation(summary = "팀 캘린더 일정 삭제", description = "팀장이 해당하는 팀 캘린더ID에서 일정을 삭제합니다.")
+    @PreAuthorize("hasAuthority('LEADER')")
+    @DeleteMapping("/team-events")
+    public BaseResponse<Void> deleteTeamEvent(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam Long calendarId, @RequestParam Long eventId) {
+
+        eventService.deleteTeamEvent(userDetails.getUserId(), calendarId, eventId);
+        return new BaseResponse<>(ErrorCode.NO_CONTENT);
+    }
+
+    @Operation(summary = "개인 캘린더 일정 삭제", description = "개인 캘린더ID에서 개인 일정을 삭제합니다.")
+    @DeleteMapping("/my-events")
+    public BaseResponse<Void> deleteMyEvent(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam Long eventId) {
+
+        eventService.deleteMyEvent(userDetails.getUserId(), eventId);
         return new BaseResponse<>(ErrorCode.NO_CONTENT);
     }
 }
