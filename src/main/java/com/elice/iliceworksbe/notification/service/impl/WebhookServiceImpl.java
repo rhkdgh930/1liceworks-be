@@ -57,7 +57,7 @@ public class WebhookServiceImpl implements WebhookService {
 
         // 3. calendar의 type이 TEAM, typeId가 user가 속한 teamId인지 확인
         if (!(calendar.getType().equals(CalendarType.TEAM) && calendar.getTypeId().equals(teamId))) {
-            throw new BaseException(ErrorCode.DENIED_ROLE_PERMISSION);
+            throw new BaseException(ErrorCode.INVALID_AUTHORIZATION);
         }
 
         // 4. 중복 Webhook 체크
