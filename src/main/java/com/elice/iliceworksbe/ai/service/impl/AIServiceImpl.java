@@ -1,8 +1,11 @@
 package com.elice.iliceworksbe.ai.service.impl;
 
 import com.elice.iliceworksbe.ai.config.property.AIProperty;
+import com.elice.iliceworksbe.ai.dto.GenerateScheduleRequestDto;
+import com.elice.iliceworksbe.ai.dto.GenerateScheduleResponseDto;
 import com.elice.iliceworksbe.ai.service.AIService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,16 +26,16 @@ public class AIServiceImpl implements AIService {
 
     private final AIProperty aiProperty;
     private final HttpClient httpClient = HttpClient.newHttpClient();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .findAndRegisterModules();
 
     @Override
-    public String generateSchedule(String prompt) {
+    public GenerateScheduleResponseDto generateSchedule(GenerateScheduleRequestDto requestDto) {
         try {
             String url = aiProperty.getFlaskUrl() + "/generate_schedule";
-            Map<String, String> requestBody = new HashMap<>();
-            requestBody.put("prompt", prompt);
 
-            String requestBodyJson = objectMapper.writeValueAsString(requestBody);
+            String requestBodyJson = objectMapper.writeValueAsString(requestDto);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -43,13 +46,14 @@ public class AIServiceImpl implements AIService {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
             log.info("generateSchedule Response: {}", response.body());
-            return response.body();
+            return objectMapper.readValue(response.body(), GenerateScheduleResponseDto.class);
         } catch (Exception e) {
             log.error("Error in generateSchedule: ", e);
-            return "{}";
+            return new GenerateScheduleResponseDto();
         }
     }
 
+    //개발 미완료
     @Override
     public String findFreeTime(Map<String, Object> calendarData) {
         try {
