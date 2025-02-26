@@ -64,12 +64,14 @@ public class DataLoader {
                 .name("일리스 BE팀 캘린더")
                 .type(CalendarType.TEAM)
                 .typeId(iliceTeamBE.getId())
+                .team(iliceTeamBE)
                 .build();
 
         Calendar calendarFE = Calendar.builder()
                 .name("일리스 FE팀 캘린더")
                 .type(CalendarType.TEAM)
                 .typeId(iliceTeamFE.getId())
+                .team(iliceTeamFE)
                 .build();
 
         calendarRepository.save(calendarBE);
@@ -215,30 +217,35 @@ public class DataLoader {
                 .name("태승 / 직급1")
                 .type(CalendarType.MEMBER)
                 .typeId(taeseungUser.getId())
+                .team(iliceTeamBE)
                 .build();
 
         Calendar calendarKwangho = Calendar.builder()
                 .name("광호 / 직급2")
                 .type(CalendarType.MEMBER)
                 .typeId(kwanghoUser.getId())
+                .team(iliceTeamBE)
                 .build();
 
         Calendar calendarSugyeong = Calendar.builder()
                 .name("수경 / 직급3")
                 .type(CalendarType.MEMBER)
                 .typeId(soogyeongUser.getId())
+                .team(iliceTeamBE)
                 .build();
 
         Calendar calendarHyerim = Calendar.builder()
                 .name("혜림 / 직급2")
                 .type(CalendarType.MEMBER)
                 .typeId(hyerimUser.getId())
+                .team(iliceTeamFE)
                 .build();
 
         Calendar calendarKyungjun = Calendar.builder()
                 .name("경준 / 직급2")
                 .type(CalendarType.MEMBER)
                 .typeId(kyungjunUser.getId())
+                .team(iliceTeamFE)
                 .build();
 
         calendarRepository.saveAll(List.of(calendarTaeseung, calendarKwangho, calendarSugyeong, calendarHyerim, calendarKyungjun));
