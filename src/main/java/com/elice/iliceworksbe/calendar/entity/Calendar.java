@@ -3,10 +3,7 @@ package com.elice.iliceworksbe.calendar.entity;
 import com.elice.iliceworksbe.common.constant.CalendarType;
 import com.elice.iliceworksbe.common.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.envers.AuditOverride;
 
 @Entity
@@ -32,4 +29,18 @@ public class Calendar extends BaseEntity{
 
     @Column(name = "type_id", nullable = false)
     private Long typeId;
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Calendar)) return false;
+
+        Calendar calendar = (Calendar) o;
+        return getId().equals(calendar.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getId().hashCode();
+    }
 }
