@@ -43,6 +43,7 @@ public enum ErrorCode {
     INVALID_USER_JWT(false, HttpStatus.FORBIDDEN.value(), "권한이 없는 유저의 접근입니다."),
     INVALID_EMAIL_FORMAT(false, HttpStatus.BAD_REQUEST.value(), "이메일 형식을 확인해주세요."),
     INVALID_AUTHORIZATION(false, HttpStatus.CONFLICT.value(), "잘못된 권한입니다."),
+    INVALID_DATE(false, HttpStatus.BAD_REQUEST.value(), "올바르지 않은 날짜입니다."),
 
     DUPLICATED_ACCOUNT_ID(false, HttpStatus.BAD_REQUEST.value(), "중복된 계정 ID입니다."),
     DUPLICATED_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "중복된 이메일입니다."),
