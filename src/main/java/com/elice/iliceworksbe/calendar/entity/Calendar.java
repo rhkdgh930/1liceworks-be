@@ -2,6 +2,7 @@ package com.elice.iliceworksbe.calendar.entity;
 
 import com.elice.iliceworksbe.common.constant.CalendarType;
 import com.elice.iliceworksbe.common.entity.BaseEntity;
+import com.elice.iliceworksbe.team.entity.Team;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.envers.AuditOverride;
@@ -29,6 +30,10 @@ public class Calendar extends BaseEntity{
 
     @Column(name = "type_id", nullable = false)
     private Long typeId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "team_id")
+    private Team team;
 
     @Override
     public final boolean equals(Object o) {
