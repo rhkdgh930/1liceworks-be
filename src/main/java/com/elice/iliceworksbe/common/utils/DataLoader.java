@@ -392,18 +392,6 @@ public class DataLoader {
                 .calendar(calendarFE)
                 .build();
 
-        Event ev1other = Event.builder()
-                .title("법정 공휴일")
-                .description("설 연휴")
-                .dtStartTime(getRandomDateTime().toLocalDate().atStartOfDay())
-                .dtEndTime(getRandomDateTime().toLocalDate().atTime(23, 59, 59))
-                .isAllDay(true)
-                .privacy(PrivacyType.PUBLIC)
-                .availability(Availability.FREE)
-                .location("전국")
-                .calendar(otherCalendar)
-                .build();
-
         Event ev1kwangho = Event.builder()
                 .title("치과 가기")
                 .description("보라치과")
@@ -453,7 +441,7 @@ public class DataLoader {
                 .build();
 
         // 이벤트 저장
-        List<Event> events = List.of(ev1BE, ev2BE, ev3BE, ev1FE, ev4BE, ev1Taeseung, ev5BE, ev6BE, ev7BE, ev2FE, ev1other,
+        List<Event> events = List.of(ev1BE, ev2BE, ev3BE, ev1FE, ev4BE, ev1Taeseung, ev5BE, ev6BE, ev7BE, ev2FE,
                 ev1kwangho, ev2kwangho, ev3kwangho, ev4kwangho);
         eventRepository.saveAll(events);
 
