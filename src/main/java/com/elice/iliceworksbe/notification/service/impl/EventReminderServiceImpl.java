@@ -16,6 +16,9 @@ import com.elice.iliceworksbe.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,12 +109,21 @@ public class EventReminderServiceImpl implements EventReminderService {
         LocalDateTime start = now.minusSeconds(30);
         LocalDateTime end = now.plusSeconds(30);
 
-        List<EventReminder> eventReminders = eventReminderRepository.findByNotifyTimeBetween(start, end);
-        log.info("eventReminder 보내기{}", eventReminders);
-        if (!eventReminders.isEmpty()) {
+        //페이징 처리로 한 번에 가져오는 데이터 수 제한
+        int pageSize = 100;
+        Pageable pageable = PageRequest.of(0, pageSize);
+        Page<EventReminder> eventRemindersPage;
+
+        do {
+            eventRemindersPage = eventReminderRepository.findByNotifyTimeBetween(start, end, pageable);
+            List<EventReminder> eventReminders = eventRemindersPage.getContent();
+
             log.info("발송할 알림 개수: {}", eventReminders.size());
             eventReminders.forEach(this::processEventReminder);
-        }
+
+            pageable = pageable.next(); // 다음 페이지로 이동
+        } while (eventRemindersPage.hasNext()); // 다음 데이터가 있을 경우 계속 조회
+
     }
 
     /**
