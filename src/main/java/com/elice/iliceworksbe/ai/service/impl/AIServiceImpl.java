@@ -16,6 +16,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -74,10 +76,36 @@ public class AIServiceImpl implements AIService {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             log.info("findFreeTime Response: {}", response.body());
-            return objectMapper.readValue(response.body(), FindFreeTimeResponseDto.class);
+            FindFreeTimeResponseDto responseDto = objectMapper.readValue(response.body(), FindFreeTimeResponseDto.class);
+
+            List<FindFreeTimeResponseDto.FreeTimeSlotDto> validFreeTimes = filterValidFreeTimes(responseDto.getFreeTimeSlotDtos(), events);
+
+            return new FindFreeTimeResponseDto(validFreeTimes);
         } catch (Exception e) {
             log.error("Error in findFreeTime: ", e);
             return new FindFreeTimeResponseDto();
         }
+    }
+
+    private List<FindFreeTimeResponseDto.FreeTimeSlotDto> filterValidFreeTimes(
+            List<FindFreeTimeResponseDto.FreeTimeSlotDto> freeTimeDtos,
+            List<EventJsonResponseDto> events
+    ) {
+        List<FindFreeTimeResponseDto.FreeTimeSlotDto> validFreeTimes = new ArrayList<>();
+
+        for (FindFreeTimeResponseDto.FreeTimeSlotDto freeTime : freeTimeDtos) {
+            LocalDateTime freeStart = freeTime.getStartTime();
+            LocalDateTime freeEnd = freeTime.getEndTime();
+
+            boolean isOverlapping = events.stream().anyMatch(event ->
+                    event.getDtStartTime().isBefore(freeEnd) && event.getDtEndTime().isAfter(freeStart)
+            );
+
+            if (!isOverlapping) {
+                validFreeTimes.add(freeTime);
+            }
+        }
+
+        return validFreeTimes;
     }
 }
