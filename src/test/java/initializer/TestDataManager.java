@@ -1,4 +1,4 @@
-package com.elice.iliceworksbe.common.utils;
+package initializer;
 
 import com.elice.iliceworksbe.auth.entity.User;
 import com.elice.iliceworksbe.auth.repository.UserRepository;
@@ -19,22 +19,18 @@ import com.elice.iliceworksbe.team.constant.Industry;
 import com.elice.iliceworksbe.team.constant.Scale;
 import com.elice.iliceworksbe.team.entity.*;
 import com.elice.iliceworksbe.team.repository.*;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.test.context.TestComponent;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-/*
-서버 데이터 초기화용
- */
-
-@Component
+@TestComponent
 @RequiredArgsConstructor
-public class DataLoader {
+public class TestDataManager {
 
     private final TeamRepository teamRepository;
     private final PasswordEncoder passwordEncoder;
@@ -530,6 +526,7 @@ public class DataLoader {
 
         eventParticipantRepository.saveAll(List.of(ep1, ep2, ep3, ep4, ep5, ep6, ep7, ep8, ep9, ep10, ep11, ep12, ep13, ep14));
 
+
         //이벤트 리마인더 저장
         EventReminder ev1BE_er1 = EventReminder.builder()
                 .notifyTime(ev1BE.getDtStartTime().minusMinutes(30))
@@ -613,7 +610,6 @@ public class DataLoader {
 
     }
 
-
     // 2024년 12월부터 2025년 3월 사이의 무작위 값 설정
     private LocalDateTime getRandomDateTime() {
         long startEpoch = LocalDateTime.of(2024, 12, 1, 0, 0).toEpochSecond(java.time.ZoneOffset.UTC);
@@ -621,4 +617,5 @@ public class DataLoader {
         long randomEpoch = ThreadLocalRandom.current().nextLong(startEpoch, endEpoch);
         return LocalDateTime.ofEpochSecond(randomEpoch, 0, java.time.ZoneOffset.UTC);
     }
+
 }

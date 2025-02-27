@@ -43,6 +43,7 @@ public enum ErrorCode {
     INVALID_USER_JWT(false, HttpStatus.FORBIDDEN.value(), "권한이 없는 유저의 접근입니다."),
     INVALID_EMAIL_FORMAT(false, HttpStatus.BAD_REQUEST.value(), "이메일 형식을 확인해주세요."),
     INVALID_AUTHORIZATION(false, HttpStatus.CONFLICT.value(), "잘못된 권한입니다."),
+    INVALID_DATE(false, HttpStatus.BAD_REQUEST.value(), "올바르지 않은 날짜입니다."),
 
     DUPLICATED_ACCOUNT_ID(false, HttpStatus.BAD_REQUEST.value(), "중복된 계정 ID입니다."),
     DUPLICATED_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "중복된 이메일입니다."),
@@ -52,7 +53,6 @@ public enum ErrorCode {
     DUPLICATED_WEBHOOK(false, HttpStatus.BAD_REQUEST.value(), "해당 캘린더에 이미 웹훅이 등록되어 있습니다."),
 
 
-    EVENT_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "일정을 찾을 수 없습니다."),
     JOB_TITLE_NOT_FOUND(false, HttpStatus.NOT_FOUND.value(), "일치하는 직책이 없습니다."),
 
     MUST_START_TIME_BEFORE_END_TIME(false, HttpStatus.BAD_REQUEST.value(), "일정 시작 시간은 끝 시간보다 이전에 와야합니다."),
@@ -69,6 +69,7 @@ public enum ErrorCode {
     FAILED_TO_CONNECT_SERVER(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버와의 연결에 실패하였습니다."),
     FAILED_TO_ENCRYPT_PASSWORD(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 암호화에 실패하였습니다."),
     FAILED_TO_DECRYPT_PASSWORD(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 복호화에 실패하였습니다."),
+    FAILED_TO_SEND_WEBHOOK(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "웹훅 전송 중 오류가 발생했습니다."),
     UNEXPECTED_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "예상치 못한 에러가 발생했습니다."),
     FAILED_TO_JSON_PARSING(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "JSON 파싱을 실패했습니다."),
     /**
