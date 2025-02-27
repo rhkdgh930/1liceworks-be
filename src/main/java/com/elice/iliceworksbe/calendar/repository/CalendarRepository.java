@@ -14,4 +14,5 @@ public interface CalendarRepository extends JpaRepository<Calendar, Long> {
     Optional<Calendar> findByTypeAndTypeId(CalendarType type, Long typeId);
     List<Calendar> findByTeam(Team team);
     List<Calendar> findByTypeId(Long typeId);
+    Calendar findFirstByTypeId(Long typeId);
 }
