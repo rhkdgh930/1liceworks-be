@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public record PostMyEventRequestDto(
+public record PatchMyEventRequestDto(
         @NotBlank(message = "일정 제목은 필수입니다.")
         String title,
         String description,

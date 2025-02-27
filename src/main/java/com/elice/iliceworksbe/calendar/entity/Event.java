@@ -1,5 +1,7 @@
 package com.elice.iliceworksbe.calendar.entity;
 
+import com.elice.iliceworksbe.calendar.dto.request.PatchMyEventRequestDto;
+import com.elice.iliceworksbe.calendar.dto.request.PatchTeamEventRequestDto;
 import com.elice.iliceworksbe.calendar.dto.request.PostMyEventRequestDto;
 import com.elice.iliceworksbe.calendar.dto.request.PostTeamEventRequestDto;
 import com.elice.iliceworksbe.common.constant.Availability;
@@ -130,5 +132,26 @@ public class Event extends BaseEntity{
                 .location(postMyEventRequestDto.location())
                 .calendar(calendar)
                 .build();
+    }
+
+    public void patchTeamEvent(PatchTeamEventRequestDto patchTeamEventRequestDto) {
+        patchCommonEventInfo(patchTeamEventRequestDto.title(), patchTeamEventRequestDto.description(), patchTeamEventRequestDto.isAllDay(), patchTeamEventRequestDto.dtStartTime(), patchTeamEventRequestDto.dtEndTime(), patchTeamEventRequestDto.location());
+        this.privacy = PrivacyType.PUBLIC;
+        this.availability = Availability.BUSY;
+    }
+
+    public void patchMyEvent(PatchMyEventRequestDto patchMyEventRequestDto) {
+        patchCommonEventInfo(patchMyEventRequestDto.title(), patchMyEventRequestDto.description(), patchMyEventRequestDto.isAllDay(), patchMyEventRequestDto.dtStartTime(), patchMyEventRequestDto.dtEndTime(), patchMyEventRequestDto.location());
+        this.privacy = patchMyEventRequestDto.privacyType();
+        this.availability = patchMyEventRequestDto.availability();
+    }
+
+    private void patchCommonEventInfo(String title, String description, Boolean allDay, LocalDateTime dtStartTime, LocalDateTime dtEndTime, String location) {
+        this.title = title;
+        this.description = description;
+        this.isAllDay = allDay;
+        this.dtStartTime = allDay ? dtStartTime.toLocalDate().atStartOfDay() : dtStartTime;
+        this.dtEndTime = allDay ? dtEndTime.toLocalDate().atTime(23, 59, 59) : dtEndTime;
+        this.location = location;
     }
 }
