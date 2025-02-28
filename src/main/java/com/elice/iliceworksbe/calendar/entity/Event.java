@@ -16,7 +16,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.envers.AuditOverride;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Getter
@@ -55,7 +57,7 @@ public class Event extends BaseEntity{
     @Enumerated(EnumType.STRING)
     private Availability availability;
 
-    @Column(name = "location", nullable = false)
+    @Column(name = "location")
     private String location;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -153,5 +155,27 @@ public class Event extends BaseEntity{
         this.dtStartTime = allDay ? dtStartTime.toLocalDate().atStartOfDay() : dtStartTime;
         this.dtEndTime = allDay ? dtEndTime.toLocalDate().atTime(23, 59, 59) : dtEndTime;
         this.location = location;
+    }
+
+    public static Event of(com.google.api.services.calendar.model.Event e, Calendar calendar){
+        return Event.builder()
+                .title(e.getSummary())
+                .description(e.getDescription())
+                .dtStartTime(epochToLocalDateTime(e.getStart().getDate().getValue()))
+                .dtEndTime(epochToLocalDateTime(e.getEnd().getDate().getValue()))
+                .isAllDay(true)
+                .privacy(PrivacyType.PUBLIC)
+                .availability(Availability.FREE)
+                .location(e.getLocation())
+                .calendar(calendar)
+                .build();
+    }
+
+    private static LocalDateTime epochToLocalDateTime(long epochMillis){
+        // Instant를 생성 (Epoch Time → Instant)
+        Instant instant = Instant.ofEpochMilli(epochMillis);
+
+        // UTC 기준 LocalDateTime 변환
+        return LocalDateTime.ofInstant(instant, ZoneId.of("UTC"));
     }
 }

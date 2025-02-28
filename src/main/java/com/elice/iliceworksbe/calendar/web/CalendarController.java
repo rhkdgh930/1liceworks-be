@@ -6,6 +6,7 @@ import com.elice.iliceworksbe.calendar.dto.response.GetCalendarEventsResponseDto
 import com.elice.iliceworksbe.calendar.dto.response.GetAccessibleCalendarsResponseDto;
 import com.elice.iliceworksbe.calendar.dto.response.GetEventsByTitleKeywordResponseDto;
 import com.elice.iliceworksbe.calendar.service.EventService;
+import com.elice.iliceworksbe.calendar.service.GoogleCalendarService;
 import com.elice.iliceworksbe.common.constant.CalendarType;
 import com.elice.iliceworksbe.common.exception.BaseException;
 import com.elice.iliceworksbe.common.exception.BaseResponse;
@@ -18,6 +19,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 
@@ -29,6 +32,7 @@ import java.util.List;
 public class CalendarController {
 
     private final EventService eventService;
+    private final GoogleCalendarService googleCalendarService;
 
     @Operation(summary = "팀 캘린더 일정 생성", description = "해당하는 팀 캘린더ID에서 일정을 생성합니다.")
     @PostMapping("/team-events")
@@ -109,6 +113,22 @@ public class CalendarController {
         return new BaseResponse<>(ErrorCode.NO_CONTENT);
     }
 
+    @Operation(summary = "법정 공휴일 데이터 삽입 요청", description = "구글 캘린더 API로부터 2020-2030년에 해당하는 대한민국 법정 공휴일 데이터를 삽입합니다.")
+    @PatchMapping("/holidays")
+    public BaseResponse<Void> patchMyEvent(@RequestParam String key) {
+
+        if (!key.equals("!a12345678")) {
+            throw new BaseException(ErrorCode.INVALID_AUTHORIZATION);
+        }
+
+        try {
+            googleCalendarService.insertKoreaHolidayFromGoogleCalendar();
+        } catch (IOException | GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        }
+
+        return new BaseResponse<>(ErrorCode.NO_CONTENT);
+    }
     @Operation(summary = "일정 검색 기능", description = "선택된 캘린더 내에서 키워드를 포함하는 제목을 기준으로 일정 검색을 합니다.")
     @GetMapping("/find-events")
     public BaseResponse<GetEventsByTitleKeywordResponseDto> getEventsByTitleKeyword(@AuthenticationPrincipal UserDetailsImpl userDetails,

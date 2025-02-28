@@ -1,4 +1,4 @@
-package com.elice.iliceworksbe.common.utils;
+package initializer;
 
 import com.elice.iliceworksbe.auth.entity.User;
 import com.elice.iliceworksbe.auth.repository.UserRepository;
@@ -19,22 +19,18 @@ import com.elice.iliceworksbe.team.constant.Industry;
 import com.elice.iliceworksbe.team.constant.Scale;
 import com.elice.iliceworksbe.team.entity.*;
 import com.elice.iliceworksbe.team.repository.*;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.test.context.TestComponent;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-/*
-서버 데이터 초기화용
- */
-
-@Component
+@TestComponent
 @RequiredArgsConstructor
-public class DataLoader {
+public class TestDataManager {
 
     private final TeamRepository teamRepository;
     private final PasswordEncoder passwordEncoder;
@@ -392,6 +388,18 @@ public class DataLoader {
                 .calendar(calendarFE)
                 .build();
 
+        Event ev1other = Event.builder()
+                .title("법정 공휴일")
+                .description("설 연휴")
+                .dtStartTime(getRandomDateTime().toLocalDate().atStartOfDay())
+                .dtEndTime(getRandomDateTime().toLocalDate().atTime(23, 59, 59))
+                .isAllDay(true)
+                .privacy(PrivacyType.PUBLIC)
+                .availability(Availability.FREE)
+                .location("전국")
+                .calendar(otherCalendar)
+                .build();
+
         Event ev1kwangho = Event.builder()
                 .title("치과 가기")
                 .description("보라치과")
@@ -441,7 +449,7 @@ public class DataLoader {
                 .build();
 
         // 이벤트 저장
-        List<Event> events = List.of(ev1BE, ev2BE, ev3BE, ev1FE, ev4BE, ev1Taeseung, ev5BE, ev6BE, ev7BE, ev2FE,
+        List<Event> events = List.of(ev1BE, ev2BE, ev3BE, ev1FE, ev4BE, ev1Taeseung, ev5BE, ev6BE, ev7BE, ev2FE, ev1other,
                 ev1kwangho, ev2kwangho, ev3kwangho, ev4kwangho);
         eventRepository.saveAll(events);
 
@@ -517,6 +525,7 @@ public class DataLoader {
                 .build();
 
         eventParticipantRepository.saveAll(List.of(ep1, ep2, ep3, ep4, ep5, ep6, ep7, ep8, ep9, ep10, ep11, ep12, ep13, ep14));
+
 
         //이벤트 리마인더 저장
         EventReminder ev1BE_er1 = EventReminder.builder()
@@ -601,7 +610,6 @@ public class DataLoader {
 
     }
 
-
     // 2024년 12월부터 2025년 3월 사이의 무작위 값 설정
     private LocalDateTime getRandomDateTime() {
         long startEpoch = LocalDateTime.of(2024, 12, 1, 0, 0).toEpochSecond(java.time.ZoneOffset.UTC);
@@ -609,4 +617,5 @@ public class DataLoader {
         long randomEpoch = ThreadLocalRandom.current().nextLong(startEpoch, endEpoch);
         return LocalDateTime.ofEpochSecond(randomEpoch, 0, java.time.ZoneOffset.UTC);
     }
+
 }

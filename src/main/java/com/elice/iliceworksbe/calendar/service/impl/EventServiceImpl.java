@@ -344,8 +344,11 @@ public class EventServiceImpl implements EventService {
         // 1. 선택한 캘린더에 대해 조회할 수 있는 권한이 있는지 확인. TypeId=-1은 법정공휴일 캘린더를 의미한다. (권한 상관없이 조회 가능)
         Calendar targetCalendar = calendarRepository.findById(calendarId).orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_CALENDAR));
 
-        if (!(targetCalendar.getTypeId() != -1 && queryingTeam.equals(targetCalendar.getTeam()))) {
-            throw new BaseException(ErrorCode.NOT_FOUND_CALENDAR);
+        if (!targetCalendar.getTypeId().equals(-1L)) {
+            if (!(queryingTeam.equals(targetCalendar.getTeam()))) {
+                log.info("조회하려는 캘린더의 typeId : {}, type : {}", targetCalendar.getTypeId(), targetCalendar.getType());
+                throw new BaseException(ErrorCode.NOT_FOUND_CALENDAR);
+            }
         }
 
         // 2. 조회할 일정 날짜 범위 구하기 (기준연월 기준 +- 1개월)
