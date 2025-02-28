@@ -16,9 +16,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -91,21 +90,10 @@ public class AIServiceImpl implements AIService {
             List<FindFreeTimeResponseDto.FreeTimeSlotDto> freeTimeDtos,
             List<EventJsonResponseDto> events
     ) {
-        List<FindFreeTimeResponseDto.FreeTimeSlotDto> validFreeTimes = new ArrayList<>();
-
-        for (FindFreeTimeResponseDto.FreeTimeSlotDto freeTime : freeTimeDtos) {
-            LocalDateTime freeStart = freeTime.getStartTime();
-            LocalDateTime freeEnd = freeTime.getEndTime();
-
-            boolean isOverlapping = events.stream().anyMatch(event ->
-                    event.getDtStartTime().isBefore(freeEnd) && event.getDtEndTime().isAfter(freeStart)
-            );
-
-            if (!isOverlapping) {
-                validFreeTimes.add(freeTime);
-            }
-        }
-
-        return validFreeTimes;
+        return freeTimeDtos.stream()
+                .filter(freeTime -> events.stream().noneMatch(event ->
+                        event.getDtStartTime().isBefore(freeTime.getEndTime()) && event.getDtEndTime().isAfter(freeTime.getStartTime())
+                ))
+                .collect(Collectors.toList());
     }
 }
