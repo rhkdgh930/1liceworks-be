@@ -231,6 +231,45 @@ class WebhookServiceTest {
     }
 
     @Test
+    @DisplayName("웹훅 수정 성공")
+    void patchWebhook_Success() {
+        // Given
+        WebhookUpdateDto webhookUpdateDto = new WebhookUpdateDto("https://new-url.com", ContentType.APPLICATION_JSON);
+        Webhook updatedWebhook = Webhook.builder()
+                .id(webhookId)
+                .payloadUrl("https://new-url.com")
+                .contentType(ContentType.APPLICATION_JSON)
+                .build();
+
+        given(webhookRepository.findById(webhookId)).willReturn(Optional.of(iliceTeamBE_webhook));
+        given(webhookRepository.save(any(Webhook.class))).willReturn(updatedWebhook); // any()를 사용하여 save() 메서드 호출을 모의
+
+        // When
+        WebhookResponseDto result = webhookService.patchWebhook(webhookId, webhookUpdateDto);
+
+        // Then
+        verify(webhookRepository, times(1)).findById(webhookId); // findById가 호출되었는지 확인
+        verify(webhookRepository, times(1)).save(any(Webhook.class)); // save 호출 확인
+        assertEquals("https://new-url.com", result.payloadUrl()); // 업데이트된 URL 확인
+        assertEquals(ContentType.APPLICATION_JSON, result.contentType()); // 업데이트된 ContentType 확인
+    }
+
+    @Test
+    @DisplayName("웹훅 수정 실패 - 저장된 웹훅이 없을 경우")
+    void patchWebhook_NotFound() {
+        // given
+        WebhookUpdateDto webhookUpdateDto = new WebhookUpdateDto("https://new-url.com", ContentType.APPLICATION_JSON);
+        given(webhookRepository.findById(webhookId)).willReturn(Optional.empty());
+
+        // when / then
+        BaseException thrown = assertThrows(BaseException.class, () -> {
+            webhookService.patchWebhook(webhookId, webhookUpdateDto);
+        });
+
+        // 예외 코드가 맞는지 확인
+        assertEquals(ErrorCode.NOT_FOUND_WEBHOOK, thrown.getStatus());
+    }
+    @Test
     void sendWebhookMessage() {
     }
 
