@@ -11,6 +11,7 @@ import com.elice.iliceworksbe.common.constant.Status;
 import com.elice.iliceworksbe.common.exception.BaseException;
 import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.elice.iliceworksbe.notification.dto.request.WebhookRequestDto;
+import com.elice.iliceworksbe.notification.dto.request.WebhookUpdateDto;
 import com.elice.iliceworksbe.notification.dto.response.WebhookResponseDto;
 import com.elice.iliceworksbe.notification.entity.Webhook;
 import com.elice.iliceworksbe.notification.repository.WebhookRepository;
@@ -21,10 +22,13 @@ import com.elice.iliceworksbe.team.entity.Team;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.boot.test.context.SpringBootTest;
+
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
+
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -35,9 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @SpringBootTest
 @ActiveProfiles("test")
-//@ExtendWith(MockitoExtension.class)
 class WebhookServiceTest {
-
     @InjectMocks
     private WebhookServiceImpl webhookService;
 
@@ -53,6 +55,7 @@ class WebhookServiceTest {
     private Long teamId = 1L;
     private Long calendarId = 1L;
     private Long userId = 1L;
+    private Long webhookId = 1L;
 
     Team iliceTeamBE = Team.builder()
             .id(teamId)
@@ -84,6 +87,7 @@ class WebhookServiceTest {
             .build();
 
     Webhook iliceTeamBE_webhook = Webhook.builder()
+            .id(webhookId)
             .payloadUrl("https://discord.com/api/webhooks/1342348107215798306/bYtBuXjzlkFdsj2saJ03Mo5GvZUCPaGRFB7EsK7no01urQ61OnPMqvZnY2XJkewuRTcn")
             .contentType(ContentType.APPLICATION_JSON)
             .calendar(calendarBE)
@@ -191,22 +195,43 @@ class WebhookServiceTest {
         BaseException thrown = assertThrows(BaseException.class,
                 () -> webhookService.postWebhook(userId, requestDto)
         );
-        log.info("thrown={}",thrown.getStatus());
+        log.info("thrown={}", thrown.getStatus());
 
         assertEquals(ErrorCode.DUPLICATED_WEBHOOK, thrown.getStatus());
     }
 
+    @Test
+    @DisplayName("웹훅 조회 성공")
+    void getWebhook_Success() {
+        // given
+        WebhookResponseDto expectedResponseDto = WebhookResponseDto.from(iliceTeamBE_webhook);
+        given(webhookRepository.findById(webhookId)).willReturn(Optional.of(iliceTeamBE_webhook));
+
+        // When
+        WebhookResponseDto result = webhookService.getWebhook(webhookId);
+
+        // Then
+        verify(webhookRepository, times(1)).findById(webhookId);
+        assertEquals(expectedResponseDto, result);
+    }
 
     @Test
-    void postWebhook() {
+    @DisplayName("웹훅 조회 실패 - 저장된 웹훅이 없는 경우")
+    void getWebhook_NotFound() {
+        // given
+        given(webhookRepository.findById(webhookId)).willReturn(Optional.empty());
+
+        // when / then
+        BaseException thrown = assertThrows(BaseException.class, () -> {
+            webhookService.getWebhook(webhookId);
+        });
+
+        // 예외 코드가 맞는지 확인
+        assertEquals(ErrorCode.NOT_FOUND_WEBHOOK, thrown.getStatus());
     }
 
     @Test
     void sendWebhookMessage() {
-    }
-
-    @Test
-    void getWebhook() {
     }
 
     @Test
