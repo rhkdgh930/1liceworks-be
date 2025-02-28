@@ -10,8 +10,28 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
+    @Query("""
+    SELECT e FROM Event e
+    JOIN e.calendar c
+    JOIN EventParticipant ep ON ep.event = e
+    WHERE ep.user.id IN :userIds
+    AND c.id = :teamCalendarId
+    AND (
+        (e.dtStartTime BETWEEN :startDateTime AND :endDateTime)
+        OR (e.dtEndTime BETWEEN :startDateTime AND :endDateTime)
+        OR (e.dtStartTime <= :startDateTime AND e.dtEndTime >= :endDateTime)
+    )
+""")
+    List<Event> findEventsByDateAndParticipants( // userIds 리스트에 있는 유저가 하나라도 속해있는 일정들을 가져오는 로직
+            @Param("teamCalendarId") Long teamCalendarId,
+            @Param("userIds") List<Long> userIds,
+            @Param("startDateTime") LocalDateTime startDateTime,
+            @Param("endDateTime") LocalDateTime endDateTime
+    );
+
     @Query("SELECT e FROM Event e " +
             "WHERE ((e.dtStartTime BETWEEN :startDate AND :endDate) " +
             "OR (e.dtEndTime BETWEEN :startDate AND :endDate))" +

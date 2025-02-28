@@ -6,6 +6,11 @@ import com.elice.iliceworksbe.calendar.dto.request.*;
 import com.elice.iliceworksbe.calendar.dto.response.GetAccessibleCalendarsResponseDto;
 import com.elice.iliceworksbe.calendar.dto.response.GetCalendarEventsResponseDto;
 import com.elice.iliceworksbe.calendar.dto.response.GetEventsByTitleKeywordResponseDto;
+import com.elice.iliceworksbe.calendar.dto.request.PatchMyEventRequestDto;
+import com.elice.iliceworksbe.calendar.dto.request.PatchTeamEventRequestDto;
+import com.elice.iliceworksbe.calendar.dto.request.PostMyEventRequestDto;
+import com.elice.iliceworksbe.calendar.dto.request.PostTeamEventRequestDto;
+import com.elice.iliceworksbe.calendar.dto.response.EventJsonResponseDto;
 import com.elice.iliceworksbe.calendar.entity.Calendar;
 import com.elice.iliceworksbe.calendar.entity.Event;
 import com.elice.iliceworksbe.calendar.entity.EventParticipant;
@@ -34,10 +39,11 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
@@ -450,4 +456,21 @@ public class EventServiceImpl implements EventService {
     }
 
     private record EventDateRange(LocalDateTime startDateTime, LocalDateTime endDateTime){}
+
+    @Override
+    public List<EventJsonResponseDto> getEventsByDateAndParticipants(Long teamCalendarId, LocalDate date, List<Long> userIds) {
+        LocalDateTime startDateTime = date.atStartOfDay();
+        LocalDateTime endDateTime = date.atTime(23, 59, 59);
+
+        List<Event> events = eventRepository.findEventsByDateAndParticipants(
+                teamCalendarId, userIds, startDateTime, endDateTime
+        );
+
+        if (events.isEmpty()) {
+            log.info("events size: {}", events.size());
+        }
+
+        List<EventJsonResponseDto> eventJsonResponseDtos = events.stream().map(EventJsonResponseDto::from).collect(Collectors.toList());
+        return eventJsonResponseDtos;
+    }
 }

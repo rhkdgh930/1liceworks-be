@@ -7,6 +7,9 @@ import com.elice.iliceworksbe.calendar.dto.response.GetEventsByTitleKeywordRespo
 import com.elice.iliceworksbe.common.constant.CalendarType;
 
 import java.util.List;
+import com.elice.iliceworksbe.calendar.dto.response.EventJsonResponseDto;
+
+import java.time.LocalDate;
 
 public interface EventService {
     void postTeamEvent(Long userId, Long calendarId, PostTeamEventRequestDto postTeamEventRequestDto);
@@ -23,4 +26,6 @@ public interface EventService {
     void patchMyEvent(Long userId, Long eventId, PatchMyEventRequestDto patchMyEventRequestDto);
 
     GetEventsByTitleKeywordResponseDto getEventsByTitleKeyword(Long userId, GetEventsByTitleKeywordRequestDto getEventsByTitleKeywordRequestDto);
+
+    List<EventJsonResponseDto> getEventsByDateAndParticipants(Long teamCalendarId, LocalDate date, List<Long> userIds);
 }
