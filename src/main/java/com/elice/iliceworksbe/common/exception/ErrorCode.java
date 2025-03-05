@@ -72,6 +72,7 @@ public enum ErrorCode {
     FAILED_TO_SEND_WEBHOOK(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "웹훅 전송 중 오류가 발생했습니다."),
     UNEXPECTED_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "예상치 못한 에러가 발생했습니다."),
     FAILED_TO_JSON_PARSING(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "JSON 파싱을 실패했습니다."),
+    EXTERNAL_API_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "외부 API 요청에 실패했습니다."),
     /**
      * 400 : Validation Error
      */

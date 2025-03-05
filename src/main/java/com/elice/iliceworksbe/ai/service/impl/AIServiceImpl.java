@@ -5,6 +5,8 @@ import com.elice.iliceworksbe.ai.dto.*;
 import com.elice.iliceworksbe.ai.service.AIService;
 import com.elice.iliceworksbe.calendar.dto.response.EventJsonResponseDto;
 import com.elice.iliceworksbe.calendar.service.EventService;
+import com.elice.iliceworksbe.common.exception.BaseException;
+import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +50,11 @@ public class AIServiceImpl implements AIService {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+            if (response.statusCode() != 200) {
+                log.error("외부 API 요청 실패 - 상태코드: {}, 응답: {} ", response.statusCode(), response.body());
+                throw new BaseException(ErrorCode.EXTERNAL_API_ERROR);
+            }
+
             log.info("generateSchedule Response: {}", response.body());
             return objectMapper.readValue(response.body(), GenerateScheduleResponseDto.class);
         } catch (Exception e) {
@@ -74,6 +81,12 @@ public class AIServiceImpl implements AIService {
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                log.error("외부 API 요청 실패 - 상태코드: {}, 응답: {} ", response.statusCode(), response.body());
+                throw new BaseException(ErrorCode.EXTERNAL_API_ERROR);
+            }
+
             log.info("findFreeTime Response: {}", response.body());
             FindFreeTimeResponseDto responseDto = objectMapper.readValue(response.body(), FindFreeTimeResponseDto.class);
 

@@ -139,7 +139,7 @@ public class TeamServiceImpl implements TeamService {
         validateMemberBelongsToTeam(team, memberUser);
 
         Employee employee = employeeRepository.findEmployeeByUser(memberUser)
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER));
+                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_EMPLOYEE));
 
         UserType userType = findUserTypeByName(teamMemberInfoUpdateDto.userType());
         Position position = findPositionByName(teamMemberInfoUpdateDto.position());
