@@ -73,6 +73,7 @@ public class EventReminderServiceImpl implements EventReminderService {
 
     /**
      * EventReminder 조회
+     *
      * @param eventId
      * @return
      */
@@ -86,6 +87,7 @@ public class EventReminderServiceImpl implements EventReminderService {
 
     /**
      * 일정에 있는 EventReminder 모두 삭제
+     *
      * @param eventId
      */
     @Override
@@ -102,7 +104,6 @@ public class EventReminderServiceImpl implements EventReminderService {
      * notifyTime이 현재 시간과 일치하는 알림을 사용자에게 전송
      */
     @Override
-    @Transactional
     @Scheduled(fixedRate = 60000) // 1분마다 실행
     public void checkEventReminder() {
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
@@ -115,15 +116,24 @@ public class EventReminderServiceImpl implements EventReminderService {
         Page<EventReminder> eventRemindersPage;
 
         do {
-            eventRemindersPage = eventReminderRepository.findByNotifyTimeBetween(start, end, pageable);
-            List<EventReminder> eventReminders = eventRemindersPage.getContent();
-
-            log.info("발송할 알림 개수: {}", eventReminders.size());
-            eventReminders.forEach(this::processEventReminder);
+            eventRemindersPage = fetchAndProcessReminders(start, end, pageable);
 
             pageable = pageable.next(); // 다음 페이지로 이동
         } while (eventRemindersPage.hasNext()); // 다음 데이터가 있을 경우 계속 조회
 
+    }
+
+    /**
+     * notifyTime이 start와 end 사이에 있는 EventReminder 조회 후 처리
+     */
+    @Transactional
+    public Page<EventReminder> fetchAndProcessReminders(LocalDateTime start, LocalDateTime end, Pageable pageable) {
+        Page<EventReminder> eventRemindersPage = eventReminderRepository.findByNotifyTimeBetween(start, end, pageable);
+        List<EventReminder> eventReminders = eventRemindersPage.getContent();
+
+        log.info("발송할 알림 개수: {}", eventReminders.size());
+        eventReminders.forEach(this::processEventReminder);
+        return eventRemindersPage;
     }
 
     /**
@@ -135,14 +145,15 @@ public class EventReminderServiceImpl implements EventReminderService {
     public void processEventReminder(EventReminder eventReminder) {
         Long eventId = eventReminder.getEvent().getId();
         log.info("eventId", eventId);
-        String message = eventReminder.getEvent().getDescription();
+        String message = "EventReminder : " + eventReminder.getEvent().getTitle();
 
         List<EventParticipant> participants = eventParticipantRepository.findByEventId(eventId);
         log.info("이벤트 '{}' 에 대한 참가자 수: {}", message, participants.size());
 
         participants.forEach(participant -> {
             try {
-                NotificationRequestDto requestDto = new NotificationRequestDto(participant.getId(), message);
+                log.info("알림 전송 - 사용자: {}", participant.getUser().getId());
+                NotificationRequestDto requestDto = new NotificationRequestDto(participant.getUser().getId(), message);
                 notificationService.sendNotification(requestDto);
             } catch (Exception e) {
                 log.error("알림 전송 실패 - 사용자: {}, 오류: {}", participant.getId(), e.getMessage(), e);
