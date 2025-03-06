@@ -71,6 +71,7 @@ public class TeamServiceImpl implements TeamService {
                 .name(makeCalendarName(teamMemberRequestDto))
                 .type(CalendarType.MEMBER)
                 .typeId(member.getId())
+                .team(member.getTeam())
                 .build();
     }
 
