@@ -1,10 +1,9 @@
 package com.elice.iliceworksbe.notification.entity;
 
+import com.elice.iliceworksbe.common.entity.MongoBaseEntity;
 import com.elice.iliceworksbe.notification.dto.request.NotificationRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -15,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "notifications") // MongoDB 컬렉션 이름 지정
-public class Notification {
+public class Notification extends MongoBaseEntity {
 
     @Id
     private String id; // MongoDB에서는 기본적으로 String(ObjectId) 사용
@@ -34,14 +33,6 @@ public class Notification {
 
     @Field(name = "user_id") // @ManyToOne 대신 user의 ID만 저장
     private String userId;
-
-    @CreatedDate  // 생성 시간 자동 기록
-    @Field(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @LastModifiedDate // 마지막 수정 시간 자동 기록
-    @Field(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     public static Notification from(NotificationRequestDto requestDto) {
         return Notification.builder()
