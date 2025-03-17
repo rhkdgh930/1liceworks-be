@@ -170,7 +170,7 @@ public class NotificationServiceImpl implements NotificationService {
                 emitter.send(SseEmitter.event().name("notification").data(requestDto.message()));
 
                 // 4. 전송 성공시 isSent -> true
-//                updateNotificationStatus(savedNotification.notificationId(), true);
+                updateNotificationStatus(savedNotification.notificationId(), true);
                 log.info("SSE 알림 전송 완료: {}", savedNotification.message());
 
             } catch (IOException | IllegalStateException e) {
@@ -182,11 +182,14 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-//    @Override
-//    @Transactional
-//    public void updateNotificationStatus(Long notificationId, boolean isSent) {
-//        notificationRepository.updateIsSent(notificationId, isSent);
-//    }
+    @Override
+    public void updateNotificationStatus(String notificationId, boolean isSent) {
+        Query query = new Query(Criteria.where("id").is(notificationId));
+        Update update = new Update().set("isSent", isSent);
+
+        log.info("Updating notification with id: {} to isSent: {}", notificationId, isSent);
+        mongoTemplate.updateFirst(query, update, Notification.class);
+    }
 
     /**
      * sse 연결 종료
