@@ -22,9 +22,12 @@ import com.elice.iliceworksbe.common.constant.CalendarType;
 import com.elice.iliceworksbe.common.exception.BaseException;
 import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.elice.iliceworksbe.notification.dto.request.NotificationRequestDto;
+import com.elice.iliceworksbe.notification.dto.request.WebhookMessageDto;
 import com.elice.iliceworksbe.notification.entity.EventReminder;
 import com.elice.iliceworksbe.notification.repository.EventReminderRepository;
+import com.elice.iliceworksbe.notification.repository.WebhookRepository;
 import com.elice.iliceworksbe.notification.service.NotificationService;
+import com.elice.iliceworksbe.notification.service.WebhookService;
 import com.elice.iliceworksbe.notification.service.impl.EventReminderServiceImpl;
 import com.elice.iliceworksbe.notification.utils.NotificationMessages;
 import com.elice.iliceworksbe.team.entity.Team;
@@ -53,6 +56,8 @@ public class EventServiceImpl implements EventService {
     private final EventParticipantRepository eventParticipantRepository;
     private final NotificationService notificationService;
     private final EventReminderServiceImpl eventReminderServiceImpl;
+    private final WebhookService webhookService;
+    private final WebhookRepository webhookRepository;
 
     @Override
     @Transactional
@@ -115,6 +120,15 @@ public class EventServiceImpl implements EventService {
                                 .build()
                 )
         );
+
+        // 7. 해당 팀의 웹훅이 존재한다면 해당 팀의 웹훅에 일정이 생성됨을 알림
+        webhookRepository.findByCalendarId(calendarId).ifPresent(webhook -> {
+            webhookService.sendWebhookMessage(calendarId,
+                    WebhookMessageDto.builder()
+                            .content(NotificationMessages.CREATE_TEAM.getMessage())
+                            .build()
+            );
+        });
     }
 
     @Override
