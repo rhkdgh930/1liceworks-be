@@ -1,17 +1,16 @@
 package com.elice.iliceworksbe.notification.service.impl;
 
-
-import com.elice.iliceworksbe.auth.entity.User;
-import com.elice.iliceworksbe.auth.repository.UserRepository;
-import com.elice.iliceworksbe.common.exception.BaseException;
-import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.elice.iliceworksbe.notification.dto.request.NotificationRequestDto;
 import com.elice.iliceworksbe.notification.dto.response.NotificationResponseDto;
 import com.elice.iliceworksbe.notification.entity.Notification;
-import com.elice.iliceworksbe.notification.repository.NotificationRepository;
+import com.elice.iliceworksbe.notification.repository.mongo.NotificationRepository;
 import com.elice.iliceworksbe.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -30,8 +29,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
-    private final UserRepository userRepository;
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private final MongoTemplate mongoTemplate;
 
     /**
      * SSE 연결
@@ -55,10 +54,10 @@ public class NotificationServiceImpl implements NotificationService {
         emitters.put(userId, emitter);
 
         // 미전송 알림 처리
-        sendUnsentNotifications(userId, emitter);
+//        sendUnsentNotifications(userId, emitter);
 
         // 클라이언트 재연결 시 읽지 않은 알림 존재 여부 전송
-        sendUnreadNotificationsStatus(userId, emitter);
+//        sendUnreadNotificationsStatus(userId, emitter);
 
         return emitter;
     }
@@ -90,44 +89,44 @@ public class NotificationServiceImpl implements NotificationService {
         });
     }
 
-    /**
-     * 미전송 알림 처리
-     *
-     * @param userId
-     * @param emitter
-     */
-    private void sendUnsentNotifications(Long userId, SseEmitter emitter) {
-        List<Notification> unsentNotifications = notificationRepository.findUnsentNotifications(userId);
-
-        if (!unsentNotifications.isEmpty()) {
-            log.info("미전송 알림 {}건을 SSE를 통해 전송", unsentNotifications.size());
-            unsentNotifications.forEach(notification -> {
-                try {
-                    emitter.send(SseEmitter.event().name("notification").data(notification.getMessage()));
-                    updateNotificationStatus(notification.getId(), true);
-                    log.info("{} 전송 성공", notification.getMessage());
-                } catch (IOException e) {
-                    log.warn("미전송 알림 발송 실패: {}", e.getMessage());
-                }
-            });
-        }
-    }
-
-    /**
-     * 읽지 않은 알림 존재 여부 전송
-     * @param userId
-     * @param emitter
-     */
-    private void sendUnreadNotificationsStatus(Long userId, SseEmitter emitter) {
-        boolean hasUnreadNotifications = notificationRepository.existsByUserIdAndIsReadFalse(userId);
-        try {
-            emitter.send(SseEmitter.event()
-                    .name("unreadNotificationStatus")
-                    .data(hasUnreadNotifications ? "true" : "false"));
-        } catch (IOException e) {
-            log.warn("읽지 않은 알림 상태 전송 실패: {}", e.getMessage());
-        }
-    }
+//    /**
+//     * 미전송 알림 처리
+//     *
+//     * @param userId
+//     * @param emitter
+//     */
+//    private void sendUnsentNotifications(Long userId, SseEmitter emitter) {
+//        List<Notification> unsentNotifications = notificationRepository.findUnsentNotifications(userId);
+//
+//        if (!unsentNotifications.isEmpty()) {
+//            log.info("미전송 알림 {}건을 SSE를 통해 전송", unsentNotifications.size());
+//            unsentNotifications.forEach(notification -> {
+//                try {
+//                    emitter.send(SseEmitter.event().name("notification").data(notification.getMessage()));
+//                    updateNotificationStatus(notification.getId(), true);
+//                    log.info("{} 전송 성공", notification.getMessage());
+//                } catch (IOException e) {
+//                    log.warn("미전송 알림 발송 실패: {}", e.getMessage());
+//                }
+//            });
+//        }
+//    }
+//
+//    /**
+//     * 읽지 않은 알림 존재 여부 전송
+//     * @param userId
+//     * @param emitter
+//     */
+//    private void sendUnreadNotificationsStatus(Long userId, SseEmitter emitter) {
+//        boolean hasUnreadNotifications = notificationRepository.existsByUserIdAndIsReadFalse(userId);
+//        try {
+//            emitter.send(SseEmitter.event()
+//                    .name("unreadNotificationStatus")
+//                    .data(hasUnreadNotifications ? "true" : "false"));
+//        } catch (IOException e) {
+//            log.warn("읽지 않은 알림 상태 전송 실패: {}", e.getMessage());
+//        }
+//    }
 
     /**
      * 모든 클라이언트에게 Ping 메시지 전송
@@ -171,7 +170,7 @@ public class NotificationServiceImpl implements NotificationService {
                 emitter.send(SseEmitter.event().name("notification").data(requestDto.message()));
 
                 // 4. 전송 성공시 isSent -> true
-                updateNotificationStatus(savedNotification.notificationId(), true);
+//                updateNotificationStatus(savedNotification.notificationId(), true);
                 log.info("SSE 알림 전송 완료: {}", savedNotification.message());
 
             } catch (IOException | IllegalStateException e) {
@@ -183,11 +182,11 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    @Override
-    @Transactional
-    public void updateNotificationStatus(Long notificationId, boolean isSent) {
-        notificationRepository.updateIsSent(notificationId, isSent);
-    }
+//    @Override
+//    @Transactional
+//    public void updateNotificationStatus(Long notificationId, boolean isSent) {
+//        notificationRepository.updateIsSent(notificationId, isSent);
+//    }
 
     /**
      * sse 연결 종료
@@ -211,11 +210,8 @@ public class NotificationServiceImpl implements NotificationService {
      */
     @Override
     public NotificationResponseDto postNotification(NotificationRequestDto requestDto) {
-        User user = userRepository.findById(requestDto.userId())
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER));
 
         Notification notification = Notification.from(requestDto);
-        notification.assignUser(user);
 
         Notification savedNotification = notificationRepository.save(notification);
         return NotificationResponseDto.from(savedNotification);
@@ -229,16 +225,23 @@ public class NotificationServiceImpl implements NotificationService {
      */
     @Override
     @Transactional
-    public List<NotificationResponseDto> getNotifications(Long userId) {
+    public List<NotificationResponseDto> getNotifications(String userId) {
         LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
 
-        //DB에서 isRead = false인 알림 업데이트
-        notificationRepository.markAllAsReadByUserId(userId);
+        //isRead = false인 알림 업데이트
+        markAllAsReadByUserId(userId);
 
         return notificationRepository.findTop50ByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(userId, oneMonthAgo)
                 .stream()
                 .map(NotificationResponseDto::from)
                 .collect(Collectors.toList());
+    }
+
+    private void markAllAsReadByUserId(String userId) {
+        Query query = new Query(Criteria.where("userId").is(userId).and("isRead").is(false));
+        Update update = new Update().set("isRead", true);
+
+        mongoTemplate.updateMulti(query, update, Notification.class);
     }
 
 }
