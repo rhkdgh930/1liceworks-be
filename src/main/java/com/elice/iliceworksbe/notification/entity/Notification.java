@@ -1,56 +1,54 @@
 package com.elice.iliceworksbe.notification.entity;
 
-import com.elice.iliceworksbe.auth.entity.User;
-import com.elice.iliceworksbe.common.entity.BaseEntity;
 import com.elice.iliceworksbe.notification.dto.request.NotificationRequestDto;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.hibernate.envers.AuditOverride;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
-
-@Entity
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "NOTIFICATION")
-@AuditOverride(forClass = BaseEntity.class)
-public class Notification extends BaseEntity {
+@Document(collection = "notifications") // MongoDB 컬렉션 이름 지정
+public class Notification {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "notification_id", nullable = false)
-    private Long id;
+    private String id; // MongoDB에서는 기본적으로 String(ObjectId) 사용
 
-    @Column(name = "message", nullable = false)
+    @Field(name = "message")
     private String message;
 
-    @Column(name = "notify_time", nullable = false)
+    @Field(name = "notify_time")
     private LocalDateTime notifyTime;
 
-    @Column(name = "is_read", nullable = false)
+    @Field(name = "is_read")
     private boolean isRead = false;
 
-    @Column(name = "is_sent", nullable = false)
+    @Field(name = "is_sent")
     private boolean isSent = false;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Field(name = "user_id") // @ManyToOne 대신 user의 ID만 저장
+    private String userId;
+
+    @CreatedDate  // 생성 시간 자동 기록
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate // 마지막 수정 시간 자동 기록
+    private LocalDateTime updatedAt;
 
     public static Notification from(NotificationRequestDto requestDto) {
         return Notification.builder()
                 .message(requestDto.message())
                 .notifyTime(LocalDateTime.now())
+                .isRead(false)
+                .isSent(false)
+                .userId(String.valueOf(requestDto.userId()))
                 .build();
     }
 
-    public void assignUser(User user) {
-        this.user = user;
-    }
 }
