@@ -36,9 +36,11 @@ public class Notification {
     private String userId;
 
     @CreatedDate  // 생성 시간 자동 기록
+    @Field(name = "created_at")
     private LocalDateTime createdAt;
 
     @LastModifiedDate // 마지막 수정 시간 자동 기록
+    @Field(name = "updated_at")
     private LocalDateTime updatedAt;
 
     public static Notification from(NotificationRequestDto requestDto) {

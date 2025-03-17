@@ -54,10 +54,10 @@ public class NotificationServiceImpl implements NotificationService {
         emitters.put(userId, emitter);
 
         // 미전송 알림 처리
-//        sendUnsentNotifications(userId, emitter);
+        sendUnsentNotifications(userId, emitter);
 
         // 클라이언트 재연결 시 읽지 않은 알림 존재 여부 전송
-//        sendUnreadNotificationsStatus(userId, emitter);
+        sendUnreadNotificationsStatus(userId, emitter);
 
         return emitter;
     }
@@ -89,44 +89,44 @@ public class NotificationServiceImpl implements NotificationService {
         });
     }
 
-//    /**
-//     * 미전송 알림 처리
-//     *
-//     * @param userId
-//     * @param emitter
-//     */
-//    private void sendUnsentNotifications(Long userId, SseEmitter emitter) {
-//        List<Notification> unsentNotifications = notificationRepository.findUnsentNotifications(userId);
-//
-//        if (!unsentNotifications.isEmpty()) {
-//            log.info("미전송 알림 {}건을 SSE를 통해 전송", unsentNotifications.size());
-//            unsentNotifications.forEach(notification -> {
-//                try {
-//                    emitter.send(SseEmitter.event().name("notification").data(notification.getMessage()));
-//                    updateNotificationStatus(notification.getId(), true);
-//                    log.info("{} 전송 성공", notification.getMessage());
-//                } catch (IOException e) {
-//                    log.warn("미전송 알림 발송 실패: {}", e.getMessage());
-//                }
-//            });
-//        }
-//    }
-//
-//    /**
-//     * 읽지 않은 알림 존재 여부 전송
-//     * @param userId
-//     * @param emitter
-//     */
-//    private void sendUnreadNotificationsStatus(Long userId, SseEmitter emitter) {
-//        boolean hasUnreadNotifications = notificationRepository.existsByUserIdAndIsReadFalse(userId);
-//        try {
-//            emitter.send(SseEmitter.event()
-//                    .name("unreadNotificationStatus")
-//                    .data(hasUnreadNotifications ? "true" : "false"));
-//        } catch (IOException e) {
-//            log.warn("읽지 않은 알림 상태 전송 실패: {}", e.getMessage());
-//        }
-//    }
+    /**
+     * 미전송 알림 처리
+     *
+     * @param userId
+     * @param emitter
+     */
+    private void sendUnsentNotifications(Long userId, SseEmitter emitter) {
+        List<Notification> unsentNotifications = notificationRepository.findUnsentNotifications(String.valueOf(userId));
+
+        if (!unsentNotifications.isEmpty()) {
+            log.info("미전송 알림 {}건을 SSE를 통해 전송", unsentNotifications.size());
+            unsentNotifications.forEach(notification -> {
+                try {
+                    emitter.send(SseEmitter.event().name("notification").data(notification.getMessage()));
+                    updateNotificationStatus(notification.getId(), true);
+                    log.info("{} 전송 성공", notification.getMessage());
+                } catch (IOException e) {
+                    log.warn("미전송 알림 발송 실패: {}", e.getMessage());
+                }
+            });
+        }
+    }
+
+    /**
+     * 읽지 않은 알림 존재 여부 전송
+     * @param userId
+     * @param emitter
+     */
+    private void sendUnreadNotificationsStatus(Long userId, SseEmitter emitter) {
+        boolean hasUnreadNotifications = notificationRepository.existsByUserIdAndIsReadFalse(String.valueOf(userId));
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("unreadNotificationStatus")
+                    .data(hasUnreadNotifications ? "true" : "false"));
+        } catch (IOException e) {
+            log.warn("읽지 않은 알림 상태 전송 실패: {}", e.getMessage());
+        }
+    }
 
     /**
      * 모든 클라이언트에게 Ping 메시지 전송
