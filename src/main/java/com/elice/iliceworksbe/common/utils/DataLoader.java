@@ -13,8 +13,8 @@ import com.elice.iliceworksbe.notification.entity.EventReminder;
 import com.elice.iliceworksbe.notification.entity.Notification;
 import com.elice.iliceworksbe.notification.entity.Webhook;
 import com.elice.iliceworksbe.notification.repository.EventReminderRepository;
-import com.elice.iliceworksbe.notification.repository.NotificationRepository;
 import com.elice.iliceworksbe.notification.repository.WebhookRepository;
+import com.elice.iliceworksbe.notification.repository.mongo.NotificationRepository;
 import com.elice.iliceworksbe.team.constant.Industry;
 import com.elice.iliceworksbe.team.constant.Scale;
 import com.elice.iliceworksbe.team.entity.*;
@@ -565,37 +565,37 @@ public class DataLoader {
         Notification ev1BE_er1_noti = Notification.builder()
                 .message(ev1BE.getTitle())
                 .notifyTime(ev1BE_er1.getNotifyTime())
-                .user(ep1.getUser())
+                .userId(String.valueOf(ep1.getUser().getId()))
                 .build();
 
         Notification ev1BE_er2_noti = Notification.builder()
                 .message(ev1BE.getTitle())
                 .notifyTime(ev1BE_er2.getNotifyTime())
-                .user(ep1.getUser())
+                .userId(String.valueOf(ep1.getUser().getId()))
                 .build();
 
         Notification ev2BE_er1_noti = Notification.builder()
                 .message(ev2BE.getTitle())
                 .notifyTime(ev2BE_er1.getNotifyTime())
-                .user(ep2.getUser())
+                .userId(String.valueOf(ep2.getUser().getId()))
                 .build();
 
         Notification ev1FE_er1_noti = Notification.builder()
                 .message(ev1FE.getTitle())
                 .notifyTime(ev1FE_er1.getNotifyTime())
-                .user(ep4.getUser())
+                .userId(String.valueOf(ep4.getUser().getId()))
                 .build();
 
         Notification ev1FE_er2_noti = Notification.builder()
                 .message(ev1FE.getTitle())
                 .notifyTime(ev1FE_er2.getNotifyTime())
-                .user(ep4.getUser())
+                .userId(String.valueOf(ep4.getUser().getId()))
                 .build();
 
         Notification ev1Taeseung_er1_noti = Notification.builder()
                 .message(ev1Taeseung.getTitle())
                 .notifyTime(ev1Taeseung_er1.getNotifyTime())
-                .user(ep6.getUser())
+                .userId(String.valueOf(ep6.getUser().getId()))
                 .build();
 
         notificationRepository.saveAll(List.of(ev1BE_er1_noti, ev1BE_er2_noti, ev2BE_er1_noti, ev1FE_er1_noti, ev1FE_er2_noti, ev1Taeseung_er1_noti));
