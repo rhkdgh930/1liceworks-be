@@ -562,6 +562,10 @@ public class DataLoader {
         eventReminderRepository.saveAll(List.of(ev1BE_er1, ev1BE_er2, ev2BE_er1, ev1FE_er1, ev1FE_er2, ev1Taeseung_er1));
 
         //Notification 저장
+
+        // 기존 데이터 삭제 (초기화)
+        notificationRepository.deleteAll();
+
         Notification ev1BE_er1_noti = Notification.builder()
                 .message(ev1BE.getTitle())
                 .notifyTime(ev1BE_er1.getNotifyTime())
