@@ -1,17 +1,17 @@
 package com.elice.iliceworksbe.notification.service.impl;
 
-
-import com.elice.iliceworksbe.auth.entity.User;
-import com.elice.iliceworksbe.auth.repository.UserRepository;
-import com.elice.iliceworksbe.common.exception.BaseException;
-import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.elice.iliceworksbe.notification.dto.request.NotificationRequestDto;
 import com.elice.iliceworksbe.notification.dto.response.NotificationResponseDto;
 import com.elice.iliceworksbe.notification.entity.Notification;
-import com.elice.iliceworksbe.notification.repository.NotificationRepository;
+import com.elice.iliceworksbe.notification.repository.mongo.NotificationRepository;
 import com.elice.iliceworksbe.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -30,8 +30,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
-    private final UserRepository userRepository;
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private final MongoTemplate mongoTemplate;
 
     /**
      * SSE 연결
@@ -97,7 +97,7 @@ public class NotificationServiceImpl implements NotificationService {
      * @param emitter
      */
     private void sendUnsentNotifications(Long userId, SseEmitter emitter) {
-        List<Notification> unsentNotifications = notificationRepository.findUnsentNotifications(userId);
+        List<Notification> unsentNotifications = notificationRepository.findUnsentNotifications(String.valueOf(userId));
 
         if (!unsentNotifications.isEmpty()) {
             log.info("미전송 알림 {}건을 SSE를 통해 전송", unsentNotifications.size());
@@ -115,11 +115,12 @@ public class NotificationServiceImpl implements NotificationService {
 
     /**
      * 읽지 않은 알림 존재 여부 전송
+     *
      * @param userId
      * @param emitter
      */
     private void sendUnreadNotificationsStatus(Long userId, SseEmitter emitter) {
-        boolean hasUnreadNotifications = notificationRepository.existsByUserIdAndIsReadFalse(userId);
+        boolean hasUnreadNotifications = notificationRepository.existsByUserIdAndIsReadFalse(String.valueOf(userId));
         try {
             emitter.send(SseEmitter.event()
                     .name("unreadNotificationStatus")
@@ -184,9 +185,12 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    @Transactional
-    public void updateNotificationStatus(Long notificationId, boolean isSent) {
-        notificationRepository.updateIsSent(notificationId, isSent);
+    public void updateNotificationStatus(String notificationId, boolean isSent) {
+        Query query = new Query(Criteria.where("id").is(notificationId));
+        Update update = new Update().set("isSent", isSent);
+
+        log.info("Updating notification with id: {} to isSent: {}", notificationId, isSent);
+        mongoTemplate.updateFirst(query, update, Notification.class);
     }
 
     /**
@@ -211,11 +215,8 @@ public class NotificationServiceImpl implements NotificationService {
      */
     @Override
     public NotificationResponseDto postNotification(NotificationRequestDto requestDto) {
-        User user = userRepository.findById(requestDto.userId())
-                .orElseThrow(() -> new BaseException(ErrorCode.NOT_FOUND_USER));
 
         Notification notification = Notification.from(requestDto);
-        notification.assignUser(user);
 
         Notification savedNotification = notificationRepository.save(notification);
         return NotificationResponseDto.from(savedNotification);
@@ -229,16 +230,39 @@ public class NotificationServiceImpl implements NotificationService {
      */
     @Override
     @Transactional
-    public List<NotificationResponseDto> getNotifications(Long userId) {
+    public List<NotificationResponseDto> getNotifications(String userId) {
         LocalDateTime oneMonthAgo = LocalDateTime.now().minusMonths(1);
 
-        //DB에서 isRead = false인 알림 업데이트
-        notificationRepository.markAllAsReadByUserId(userId);
+        //isRead = false인 알림 업데이트
+        markAllAsReadByUserId(userId);
 
-        return notificationRepository.findTop50ByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(userId, oneMonthAgo)
-                .stream()
+        // 최신 알림 최대 50개 조회
+        List<Notification> recentNotifications = findRecentNotifications(userId, oneMonthAgo, 50);
+
+        log.info("알림 개수 = {}", recentNotifications.size());
+
+        return recentNotifications.stream()
                 .map(NotificationResponseDto::from)
                 .collect(Collectors.toList());
     }
 
+    private void markAllAsReadByUserId(String userId) {
+        Query query = new Query(Criteria.where("userId").is(userId).and("isRead").is(false));
+        Update update = new Update().set("isRead", true);
+
+        mongoTemplate.updateMulti(query, update, Notification.class);
+    }
+
+    private List<Notification> findRecentNotifications(String userId, LocalDateTime fromDate, int limit) {
+
+        Criteria criteria = new Criteria()
+                .and("userId").is(userId)
+                .and("notifyTime").gte(fromDate);
+
+        Query query = new Query(criteria)
+                .with(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .limit(limit);
+
+        return mongoTemplate.find(query, Notification.class);
+    }
 }

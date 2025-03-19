@@ -11,7 +11,8 @@ public interface NotificationService {
     SseEmitter createEmitter(Long userId);
     void disconnect(Long userId);
     void sendNotification(NotificationRequestDto notificationRequestDto);
-    void updateNotificationStatus(Long notificationId, boolean isSent);
+    void scheduledPing();
+    void updateNotificationStatus(String notificationId, boolean isSent);
     NotificationResponseDto postNotification(NotificationRequestDto requestDto);
-    List<NotificationResponseDto> getNotifications(Long userId);
+    List<NotificationResponseDto> getNotifications(String userId);
 }
