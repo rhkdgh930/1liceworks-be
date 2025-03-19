@@ -43,7 +43,7 @@ public class NotificationController {
     @GetMapping
     public BaseResponse<List<NotificationResponseDto>> getNotifications(
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        List<NotificationResponseDto> getResponseDtos = notificationService.getNotifications(userDetails.getUserId());
+        List<NotificationResponseDto> getResponseDtos = notificationService.getNotifications(String.valueOf(userDetails.getUserId()));
         return new BaseResponse<>(getResponseDtos);
     }
 
