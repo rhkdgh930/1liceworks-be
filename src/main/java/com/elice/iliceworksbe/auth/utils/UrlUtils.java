@@ -15,6 +15,7 @@ public class UrlUtils {
             "/api-docs/**",
             "/api/accept/**",
             "/favicon.ico",
-            "/actuator/**"
+            "/actuator/**",
+            "/grafana/**"
     };
 }
