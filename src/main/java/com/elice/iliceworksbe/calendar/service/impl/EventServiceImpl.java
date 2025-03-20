@@ -389,7 +389,17 @@ public class EventServiceImpl implements EventService {
 
                 // 4-1. 자신인 경우, 그대로 리턴
                 if (targetUserId.equals(requestingUserId)) {
-                    return new GetCalendarEventsResponseDto(calendarId, memberEvents.stream().map(GetCalendarEventsResponseDto.EventDto::from).toList());
+
+                    // 4-1-1. 각 Event 마다의 EventReminder 찾기
+                    List<GetCalendarEventsResponseDto.EventDto> eventDtos = new ArrayList<>();
+
+                    for(Event e : memberEvents){
+                        List<EventReminder> ers = eventReminderRepository.findAllByEventId(e.getId());
+
+                        eventDtos.add(GetCalendarEventsResponseDto.EventDto.from(e, ers));
+                    }
+
+                    return new GetCalendarEventsResponseDto(calendarId, eventDtos);
                 }
 
                 // 4-2. 타인의 경우, 필터링하여 리턴
@@ -406,12 +416,15 @@ public class EventServiceImpl implements EventService {
                 // 3. targetYear와 targetMonth를 기준으로 앞뒤로 1개월씩에 해당하는 모든 Event 조회
                 List<Event> teamEvents = eventRepository.findEventsWithinThreeMonthsByCalendar(eventDateRange.startDateTime, eventDateRange.endDateTime, targetCalendar);
 
-                // 4. 각 Event 마다의 EventParticipants 찾기
+                // 4. 각 Event 마다의 EventParticipants 및 EventReminder 찾기
                 List<GetCalendarEventsResponseDto.EventDto> eventDtos = new ArrayList<>();
 
                 for(Event e : teamEvents){
                     List<EventParticipant> eps = eventParticipantRepository.findByEventId(e.getId());
-                    eventDtos.add(GetCalendarEventsResponseDto.EventDto.fromForTeam(e, eps));
+                    List<EventReminder> ers = eventReminderRepository.findAllByEventId(e.getId());
+
+                    eventDtos.add(GetCalendarEventsResponseDto.EventDto.fromForTeam(e, eps, ers));
+
                 }
 
                 // 5. 변환 후 전달

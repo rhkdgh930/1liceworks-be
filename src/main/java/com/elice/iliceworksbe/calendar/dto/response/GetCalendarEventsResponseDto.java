@@ -4,6 +4,7 @@ import com.elice.iliceworksbe.calendar.entity.Event;
 import com.elice.iliceworksbe.calendar.entity.EventParticipant;
 import com.elice.iliceworksbe.common.constant.Availability;
 import com.elice.iliceworksbe.common.constant.PrivacyType;
+import com.elice.iliceworksbe.notification.entity.EventReminder;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ public record GetCalendarEventsResponseDto(
         PrivacyType privacyType,
         Availability availability,
         String location,
+        List<LocalDateTime> notifyTimes,
         List<Long> participants
     ){
         public static EventDto fromForMember(Event event){
@@ -43,7 +45,7 @@ public record GetCalendarEventsResponseDto(
             return from(event);
         }
 
-        public static EventDto fromForTeam(Event event, List<EventParticipant> eps){
+        public static EventDto fromForTeam(Event event, List<EventParticipant> eps, List<EventReminder> ers){
 
             return EventDto.builder()
                     .eventId(event.getId())
@@ -56,6 +58,7 @@ public record GetCalendarEventsResponseDto(
                     .availability(event.getAvailability())
                     .location(event.getLocation())
                     .participants(eps.stream().map(ep -> ep.getUser().getId()).toList())
+                    .notifyTimes(ers.stream().map(EventReminder::getNotifyTime).toList())
                     .build();
         }
 
@@ -70,6 +73,21 @@ public record GetCalendarEventsResponseDto(
                     .privacyType(event.getPrivacy())
                     .availability(event.getAvailability())
                     .location(event.getLocation())
+                    .build();
+        }
+
+        public static EventDto from(Event event, List<EventReminder> ers){
+            return EventDto.builder()
+                    .eventId(event.getId())
+                    .title(event.getTitle())
+                    .description(event.getDescription())
+                    .dtStartTime(event.getDtStartTime())
+                    .dtEndTime(event.getDtEndTime())
+                    .isAllDay(event.getIsAllDay())
+                    .privacyType(event.getPrivacy())
+                    .availability(event.getAvailability())
+                    .location(event.getLocation())
+                    .notifyTimes(ers.stream().map(EventReminder::getNotifyTime).toList())
                     .build();
         }
     }
