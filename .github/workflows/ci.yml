@@ -33,6 +33,10 @@ jobs:
         run: |
           echo "${{ secrets.SERVICE_ACCOUNT_JSON }}" > src/main/resources/serviceAccountKey.json
 
+      - name: Grant execute permission for Gradle Wrapper
+        run: |
+          chmod +x gradlew
+
       - name: Run Tests
         run: |
           ./gradlew test
