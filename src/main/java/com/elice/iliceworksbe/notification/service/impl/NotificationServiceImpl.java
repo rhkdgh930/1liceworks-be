@@ -3,6 +3,10 @@ package com.elice.iliceworksbe.notification.service.impl;
 
 import com.elice.iliceworksbe.auth.entity.User;
 import com.elice.iliceworksbe.auth.repository.UserRepository;
+import com.elice.iliceworksbe.calendar.entity.Calendar;
+import com.elice.iliceworksbe.calendar.entity.Event;
+import com.elice.iliceworksbe.calendar.repository.CalendarRepository;
+import com.elice.iliceworksbe.calendar.repository.EventRepository;
 import com.elice.iliceworksbe.common.exception.BaseException;
 import com.elice.iliceworksbe.common.exception.ErrorCode;
 import com.elice.iliceworksbe.notification.dto.request.NotificationRequestDto;
@@ -31,6 +35,8 @@ import java.util.stream.Collectors;
 public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final EventRepository eventRepository;
+    private final CalendarRepository calendarRepository;
     private final Map<Long, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     /**
@@ -218,7 +224,14 @@ public class NotificationServiceImpl implements NotificationService {
         notification.assignUser(user);
 
         Notification savedNotification = notificationRepository.save(notification);
-        return NotificationResponseDto.from(savedNotification);
+
+        Event event = eventRepository.findById(requestDto.eventId()).orElse(null);
+        Calendar calendar = calendarRepository.findById(requestDto.calendarId()).orElse(null);
+
+        return NotificationResponseDto.from(savedNotification,
+                (event != null) ? event.getDtStartTime() : null,
+                (calendar != null) ? calendar.getType() : null
+        );
     }
 
     /**
@@ -237,8 +250,18 @@ public class NotificationServiceImpl implements NotificationService {
 
         return notificationRepository.findTop50ByUserIdAndCreatedAtAfterOrderByCreatedAtDesc(userId, oneMonthAgo)
                 .stream()
-                .map(NotificationResponseDto::from)
+                .map(this::mapToResponseDto)
                 .collect(Collectors.toList());
+    }
+
+    private NotificationResponseDto mapToResponseDto(Notification notification) {
+        Event event = eventRepository.findById(notification.getEventId()).orElse(null);
+        Calendar calendar = calendarRepository.findById(notification.getCalendarId()).orElse(null);
+        return NotificationResponseDto.from(
+                notification,
+                (event != null) ? event.getDtStartTime() : null,
+                (calendar != null) ? calendar.getType() : null
+        );
     }
 
 }
